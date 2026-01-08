@@ -1,0 +1,132 @@
+"""
+Reference data API endpoints.
+Provides access to game reference data (materials, locations, refineries, etc.)
+"""
+from fastapi import APIRouter, Depends, Query
+from sqlalchemy.orm import Session
+from typing import Optional, List
+
+from database import get_db
+from models.material import Material
+from models.location import Location
+from models.refinery import Refinery
+
+router = APIRouter()
+
+
+@router.get("/materials")
+async def list_materials(
+    category: Optional[str] = None,
+    is_mineable: Optional[bool] = None,
+    is_salvage: Optional[bool] = None,
+    skip: int = Query(0, ge=0),
+    limit: int = Query(100, ge=1, le=500),
+    db: Session = Depends(get_db)
+):
+    """
+    Get list of materials.
+    
+    Filters:
+    - category: Filter by category (Metal, Ore, Gas, etc.)
+    - is_mineable: Filter mineable materials
+    - is_salvage: Filter salvage materials
+    """
+    query = db.query(Material)
+    
+    if category:
+        query = query.filter(Material.category == category)
+    
+    if is_mineable is not None:
+        query = query.filter(Material.is_mineable == is_mineable)
+    
+    if is_salvage is not None:
+        query = query.filter(Material.is_salvage == is_salvage)
+    
+    materials = query.offset(skip).limit(limit).all()
+    
+    return [
+        {
+            "id": m.id,
+            "name": m.name,
+            "category": m.category,
+            "unit": m.unit,
+            "is_mineable": m.is_mineable,
+            "is_salvage": m.is_salvage,
+            "is_trade_good": m.is_trade_good,
+            "base_value": float(m.base_value) if m.base_value else None
+        }
+        for m in materials
+    ]
+
+
+@router.get("/locations")
+async def list_locations(
+    system: Optional[str] = None,
+    location_type: Optional[str] = None,
+    skip: int = Query(0, ge=0),
+    limit: int = Query(100, ge=1, le=500),
+    db: Session = Depends(get_db)
+):
+    """
+    Get list of locations.
+    
+    Filters:
+    - system: Filter by system (Stanton, Nyx, etc.)
+    - location_type: Filter by type (Station, Refinery, Port, etc.)
+    """
+    query = db.query(Location)
+    
+    if system:
+        query = query.filter(Location.system == system)
+    
+    if location_type:
+        query = query.filter(Location.location_type == location_type)
+    
+    locations = query.offset(skip).limit(limit).all()
+    
+    return [
+        {
+            "id": loc.id,
+            "code": loc.code,
+            "name": loc.name,
+            "system": loc.system,
+            "planet": loc.planet,
+            "location": loc.location,
+            "location_type": loc.location_type,
+            "full_path": loc.full_path
+        }
+        for loc in locations
+    ]
+
+
+@router.get("/refineries")
+async def list_refineries(
+    system: Optional[str] = None,
+    skip: int = Query(0, ge=0),
+    limit: int = Query(100, ge=1, le=500),
+    db: Session = Depends(get_db)
+):
+    """
+    Get list of refineries.
+    
+    Filters:
+    - system: Filter by system
+    """
+    query = db.query(Refinery)
+    
+    if system:
+        query = query.filter(Refinery.system == system)
+    
+    refineries = query.offset(skip).limit(limit).all()
+    
+    return [
+        {
+            "id": ref.id,
+            "name": ref.name,
+            "system": ref.system,
+            "location_id": ref.location_id,
+            "processing_time_modifier": float(ref.processing_time_modifier),
+            "cost_modifier": float(ref.cost_modifier)
+        }
+        for ref in refineries
+    ]
