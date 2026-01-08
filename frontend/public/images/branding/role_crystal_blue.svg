@@ -1,0 +1,32 @@
+<svg width="128" height="128" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    
+    <linearGradient id="blueGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#2563eb;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <circle cx="64" cy="64" r="60" fill="#0a0e14" opacity="0.8"/>
+  
+  <polygon points="64,20 40,50 88,50" fill="url(#blueGrad)" stroke="#3b82f6" stroke-width="2" filter="url(#glow)"/>
+  <polygon points="40,50 30,70 64,64" fill="#2563eb" stroke="#3b82f6" stroke-width="1.5" opacity="0.9"/>
+  <polygon points="88,50 98,70 64,64" fill="#1d4ed8" stroke="#3b82f6" stroke-width="1.5" opacity="0.9"/>
+  <polygon points="40,50 88,50 98,70 64,80 30,70" fill="#0a0e14" stroke="#3b82f6" stroke-width="2" filter="url(#glow)"/>
+  <polygon points="30,70 40,95 64,80" fill="#2563eb" stroke="#1d4ed8" stroke-width="1.5" opacity="0.8"/>
+  <polygon points="98,70 88,95 64,80" fill="#1d4ed8" stroke="#1d4ed8" stroke-width="1.5" opacity="0.8"/>
+  <polygon points="40,95 88,95 64,108" fill="url(#blueGrad)" stroke="#3b82f6" stroke-width="2" filter="url(#glow)"/>
+  
+  <line x1="64" y1="20" x2="64" y2="50" stroke="#3b82f6" stroke-width="1" opacity="0.6"/>
+  <line x1="64" y1="80" x2="64" y2="108" stroke="#3b82f6" stroke-width="1" opacity="0.6"/>
+  
+  <circle cx="64" cy="20" r="2" fill="#3b82f6" filter="url(#glow)"/>
+  <circle cx="64" cy="108" r="2" fill="#3b82f6" filter="url(#glow)"/>
+</svg>

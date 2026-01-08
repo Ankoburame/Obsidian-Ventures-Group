@@ -1,0 +1,98 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Cyan glow filter -->
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    
+    <!-- Stronger glow for edges -->
+    <filter id="strongGlow">
+      <feGaussianBlur stdDeviation="8" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    
+    <!-- Gradient for crystal depth -->
+    <linearGradient id="crystalGrad1" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#0a0e14;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1a1e24;stop-opacity:1" />
+    </linearGradient>
+    
+    <linearGradient id="crystalGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0a0e14;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0d1117;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="512" height="512" fill="#0a0e14"/>
+  
+  <!-- Main crystal structure -->
+  
+  <!-- Top pyramid -->
+  <polygon points="256,60 160,200 352,200" 
+           fill="url(#crystalGrad1)" 
+           stroke="#22d3ee" 
+           stroke-width="3" 
+           filter="url(#strongGlow)"/>
+  
+  <!-- Left facet -->
+  <polygon points="160,200 90,300 256,270" 
+           fill="url(#crystalGrad2)" 
+           stroke="#06b6d4" 
+           stroke-width="2.5" 
+           filter="url(#glow)"/>
+  
+  <!-- Right facet -->
+  <polygon points="352,200 422,300 256,270" 
+           fill="url(#crystalGrad1)" 
+           stroke="#06b6d4" 
+           stroke-width="2.5" 
+           filter="url(#glow)"/>
+  
+  <!-- Center facet -->
+  <polygon points="160,200 352,200 422,300 256,350 90,300" 
+           fill="#0a0e14" 
+           stroke="#22d3ee" 
+           stroke-width="4" 
+           filter="url(#strongGlow)"/>
+  
+  <!-- Bottom left facet -->
+  <polygon points="90,300 160,410 256,350" 
+           fill="url(#crystalGrad2)" 
+           stroke="#0891b2" 
+           stroke-width="2.5" 
+           filter="url(#glow)"/>
+  
+  <!-- Bottom right facet -->
+  <polygon points="422,300 352,410 256,350" 
+           fill="url(#crystalGrad1)" 
+           stroke="#0891b2" 
+           stroke-width="2.5" 
+           filter="url(#glow)"/>
+  
+  <!-- Bottom pyramid -->
+  <polygon points="160,410 352,410 256,480" 
+           fill="url(#crystalGrad2)" 
+           stroke="#22d3ee" 
+           stroke-width="3" 
+           filter="url(#strongGlow)"/>
+  
+  <!-- Inner glow lines (decorative) -->
+  <line x1="256" y1="60" x2="256" y2="200" stroke="#22d3ee" stroke-width="1.5" opacity="0.6"/>
+  <line x1="256" y1="350" x2="256" y2="480" stroke="#22d3ee" stroke-width="1.5" opacity="0.6"/>
+  <line x1="160" y1="200" x2="256" y2="270" stroke="#06b6d4" stroke-width="1" opacity="0.4"/>
+  <line x1="352" y1="200" x2="256" y2="270" stroke="#06b6d4" stroke-width="1" opacity="0.4"/>
+  
+  <!-- Corner accent markers -->
+  <circle cx="256" cy="60" r="4" fill="#22d3ee" filter="url(#glow)"/>
+  <circle cx="256" cy="480" r="4" fill="#22d3ee" filter="url(#glow)"/>
+  <circle cx="90" cy="300" r="3" fill="#06b6d4" opacity="0.8"/>
+  <circle cx="422" cy="300" r="3" fill="#06b6d4" opacity="0.8"/>
+</svg>
