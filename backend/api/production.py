@@ -199,7 +199,11 @@ async def collect_job(
             raise HTTPException(status_code=400, detail="Job not ready yet")
         
         # Transfer materials to inventory
+        # Transfer materials to inventory
         for jm in job.materials:
+            # ✅ CONVERTIR unités brutes en SCU (diviser par 100)
+            quantity_in_scu = jm.quantity_refined / 100
+            
             # Upsert inventory
             inv = db.query(Inventory).filter(
                 Inventory.user_id == current_user.id,
@@ -207,13 +211,13 @@ async def collect_job(
             ).first()
             
             if inv:
-                inv.quantity += jm.quantity_refined
+                inv.quantity += quantity_in_scu  # ✅ Utiliser la quantité convertie
                 inv.last_updated = datetime.utcnow()
             else:
                 inv = Inventory(
                     user_id=current_user.id,
                     material_id=jm.material_id,
-                    quantity=jm.quantity_refined,
+                    quantity=quantity_in_scu,  # ✅ Utiliser la quantité convertie
                     unit=jm.unit
                 )
                 db.add(inv)
@@ -223,7 +227,7 @@ async def collect_job(
                 user_id=current_user.id,
                 material_id=jm.material_id,
                 event_type="refining_completed",
-                quantity_change=jm.quantity_refined,
+                quantity_change=quantity_in_scu,  # ✅ Utiliser la quantité convertie
                 refining_job_id=job.id
             )
             db.add(event)
