@@ -336,17 +336,19 @@ async def create_sale(
     """
     try:
         # Check inventory
+        # Check inventory
         inv = db.query(Inventory).filter(
             Inventory.user_id == current_user.id,
             Inventory.material_id == sale_input.material_id
         ).first()
-        
-        if not inv or inv.quantity < (Decimal(str(sale_input.quantity)) - Decimal("3.0")):
-            raise HTTPException(status_code=400, detail="Insufficient inventory")
-        
-        # Calculate revenue
+
+        if not inv or float(inv.quantity) <= 0:
+            raise HTTPException(status_code=400, detail="No inventory")
+
+        # ✅ Toujours vendre ce qui est demandé OU tout ce qui reste (le min des deux)
         quantity_to_sell = min(Decimal(str(sale_input.quantity)), inv.quantity)
 
+        # Calculate revenue
         total_revenue = quantity_to_sell * Decimal(str(sale_input.unit_price))
         
         # Create sale
