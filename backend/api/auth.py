@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 
 from database import get_db
 from models.user import User
-from schemas.auth import UserRegister, UserResponse, Token, UserMe
+from schemas.auth import UserRegister, UserResponse, Token, UserMe, ChangePassword
 from core.security import (
     verify_password,
     get_password_hash,
@@ -95,3 +95,18 @@ async def login(
 async def get_me(current_user: User = Depends(get_current_user)):
     """Get current user info."""
     return current_user
+
+@router.post("/change-password")
+async def change_password(
+    password_data: ChangePassword,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Change user password."""
+    if not verify_password(password_data.old_password, current_user.password_hash):
+        raise HTTPException(status_code=400, detail="Incorrect old password")
+    
+    current_user.password_hash = get_password_hash(password_data.new_password)
+    db.commit()
+    
+    return {"message": "Password changed successfully"}
