@@ -8,7 +8,7 @@ from models.refining import RefiningJob, RefiningJobMaterial
 from models.inventory import Inventory, InventoryEvent
 from models.sale import Sale
 from models.market import MarketPrice, PriceSnapshot
-from models.cargo import CargoRun, CargoRunMaterial
+from models.cargo import CargoRun
 
 __all__ = [
     "User",
@@ -22,5 +22,4 @@ __all__ = [
     "MarketPrice",
     "PriceSnapshot",
     "CargoRun",
-    "CargoRunMaterial",
 ]
