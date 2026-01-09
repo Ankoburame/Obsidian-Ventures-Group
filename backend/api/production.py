@@ -132,10 +132,9 @@ async def create_job(
     try:
         # Verify refinery exists - SQL brut
         result = db.execute(text("SELECT id, name FROM locations WHERE id = :id"), {"id": job_input.refinery_id})
-        refinery_check = result.fetchone()
-        
-        if not refinery_check:
-            raise HTTPException(status_code=404, detail=f"Refinery not found (searched for ID {job_input.refinery_id})")
+        refinery_check = db.execute(
+            text(f"SELECT id, name FROM locations WHERE id = {job_input.refinery_id}")
+        ).fetchone()
         
         # Create job
         start_time = datetime.utcnow()
