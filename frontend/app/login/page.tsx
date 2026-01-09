@@ -56,10 +56,7 @@ export default function LoginPage() {
 
       // Stocker le token
       localStorage.setItem("token", data.access_token);
-      localStorage.setItem("user", JSON.stringify({
-        username: username,
-        is_admin: data.is_admin || false
-      }));
+      localStorage.setItem("user", JSON.stringify(data.user));
       window.dispatchEvent(new Event("user-login"));
 
       // Rediriger vers le dashboard
