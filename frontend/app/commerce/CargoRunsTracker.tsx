@@ -66,8 +66,30 @@ export default function CargoRunsTracker() {
   const [sellPrice, setSellPrice] = useState<number>(0);
   const [notes, setNotes] = useState("");
 
+  const [stats, setStats] = useState({ total_runs: 0, total_profit: 0, avg_profit_per_run: 0 });
+
+  async function loadStats() {
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch(`${API_URL}/cargo/stats`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.ok) setStats(await res.json());
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
   useEffect(() => {
     loadRuns();
+    loadStats();
+    const timer = setInterval(loadRuns, 5000);
+    return () => clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
+    loadRuns();
+    loadStats();  // ✅ Ajoute loadStats ici
     const timer = setInterval(loadRuns, 5000);
     return () => clearInterval(timer);
   }, []);
@@ -171,24 +193,6 @@ export default function CargoRunsTracker() {
     } catch (e) {
       console.error("Error canceling run:", e);
       alert("Failed to cancel run");
-    }
-  }
-
-  const [stats, setStats] = useState({ total_runs: 0, total_profit: 0, avg_profit_per_run: 0 });
-
-  useEffect(() => {
-    loadStats();
-  }, []);
-
-  async function loadStats() {
-    try {
-      const token = localStorage.getItem("token");
-      const res = await fetch(`${API_URL}/cargo/stats`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      if (res.ok) setStats(await res.json());
-    } catch (e) {
-      console.error(e);
     }
   }
 
@@ -592,6 +596,56 @@ export default function CargoRunsTracker() {
               </>
             )}
           </button>
+        </div>
+      </div>
+
+      {/* STATS SECTION */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(3, 1fr)',
+        gap: '16px',
+        marginBottom: '32px'
+      }}>
+        <div style={{
+          padding: '20px',
+          background: `${COLORS.bgMedium}f5`,
+          border: `1px solid ${COLORS.cyan}40`,
+          borderRadius: '4px'
+        }}>
+          <div style={{ fontSize: '10px', color: COLORS.textSecondary, marginBottom: '8px', fontFamily: 'monospace' }}>
+            TOTAL RUNS COMPLETED
+          </div>
+          <div style={{ fontSize: '24px', fontWeight: 700, color: COLORS.cyan, fontFamily: 'monospace' }}>
+            {stats.total_runs}
+          </div>
+        </div>
+
+        <div style={{
+          padding: '20px',
+          background: `${COLORS.bgMedium}f5`,
+          border: `1px solid ${COLORS.profit}40`,
+          borderRadius: '4px'
+        }}>
+          <div style={{ fontSize: '10px', color: COLORS.textSecondary, marginBottom: '8px', fontFamily: 'monospace' }}>
+            TOTAL PROFIT
+          </div>
+          <div style={{ fontSize: '24px', fontWeight: 700, color: COLORS.profit, fontFamily: 'monospace' }}>
+            +{formatCurrency(stats.total_profit)} aUEC
+          </div>
+        </div>
+
+        <div style={{
+          padding: '20px',
+          background: `${COLORS.bgMedium}f5`,
+          border: `1px solid ${COLORS.profitLight}40`,
+          borderRadius: '4px'
+        }}>
+          <div style={{ fontSize: '10px', color: COLORS.textSecondary, marginBottom: '8px', fontFamily: 'monospace' }}>
+            AVG PROFIT/RUN
+          </div>
+          <div style={{ fontSize: '24px', fontWeight: 700, color: COLORS.profitLight, fontFamily: 'monospace' }}>
+            +{formatCurrency(stats.avg_profit_per_run)} aUEC
+          </div>
         </div>
       </div>
 
