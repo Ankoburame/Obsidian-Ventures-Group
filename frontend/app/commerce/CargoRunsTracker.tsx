@@ -142,8 +142,12 @@ export default function CargoRunsTracker() {
 
   async function handleDeliver(id: number) {
     try {
+      const token = localStorage.getItem("token");
       const res = await fetch(`${API_URL}/cargo/runs/${id}/deliver`, {
-        method: 'POST'
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`  // ✅ Vérifie que cette ligne existe
+        }
       });
 
       if (!res.ok) throw new Error("Failed to deliver");
@@ -167,6 +171,24 @@ export default function CargoRunsTracker() {
     } catch (e) {
       console.error("Error canceling run:", e);
       alert("Failed to cancel run");
+    }
+  }
+
+  const [stats, setStats] = useState({ total_runs: 0, total_profit: 0, avg_profit_per_run: 0 });
+
+  useEffect(() => {
+    loadStats();
+  }, []);
+
+  async function loadStats() {
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch(`${API_URL}/cargo/stats`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.ok) setStats(await res.json());
+    } catch (e) {
+      console.error(e);
     }
   }
 
