@@ -15,7 +15,6 @@ from sqlalchemy.orm import Session
 from database import SessionLocal, engine
 from models.material import Material
 from models.location import Location
-from models.refinery import Refinery
 from models.market import MarketPrice
 from decimal import Decimal
 

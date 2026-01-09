@@ -25,18 +25,19 @@ const COLORS = {
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
 
-interface Refinery {
-  id: number;
-  name: string;
-  system: string;
-  location: string;
-}
-
 interface Material {
   id: number;
   name: string;
+  category: string;
+  is_salvage: boolean;
+}
+
+interface Location {
+  id: number;
   code: string;
-  type: string;
+  name: string;
+  system: string;
+  location_type: string;
 }
 
 interface MaterialInput {
@@ -58,7 +59,7 @@ export function SalvageJobForm({ onJobCreated }: SalvageJobFormProps) {
   const [submitting, setSubmitting] = useState(false);
 
   // Form data
-  const [refineries, setRefineries] = useState<Refinery[]>([]);
+  const [refineries, setRefineries] = useState<Location[]>([]);
   const [materials, setMaterials] = useState<Material[]>([]);
   const [refineryId, setRefineryId] = useState<number>(0);
   const [materialInputs, setMaterialInputs] = useState<MaterialInput[]>([
@@ -78,28 +79,30 @@ export function SalvageJobForm({ onJobCreated }: SalvageJobFormProps) {
   async function loadData() {
     setLoading(true);
     try {
+      const token = localStorage.getItem("token");
+      const headers = {
+        "Content-Type": "application/json",
+        ...(token && { Authorization: `Bearer ${token}` })
+      };
+
       const [refRes, matRes] = await Promise.all([
-        fetch(`${API_URL}/production/refineries`),
-        fetch(`${API_URL}/market/materials`)
+        fetch(`${API_URL}/reference/refineries`, { headers }),  // ✅ Nouvel endpoint
+        fetch(`${API_URL}/reference/materials`, { headers })
       ]);
 
       const refData = await refRes.json();
       const matData = await matRes.json();
 
-      const refArray = Array.isArray(refData) ? refData : [];
-      const matArray = Array.isArray(matData) ? matData : [];
+      // Protection contre null
+      const refineries = Array.isArray(refData) ? refData : [];
+      const materials = Array.isArray(matData) ? matData.filter((mat: Material) => mat.is_salvage === true) : [];
 
-      // Filtrer seulement les matériaux salvage (RMC, Construction Materials, etc.)
-      // Pour l'instant on garde tous, tu pourras filtrer plus tard
-      const salvageMaterials = matArray.filter((mat: Material) =>
-        !mat.name.includes('(Raw)') && !mat.name.endsWith('Raw')
-      );
+      setRefineries(refineries);
+      setMaterials(materials);
 
-      setRefineries(refArray);
-      setMaterials(salvageMaterials);
-
-      if (refArray.length > 0) {
-        setRefineryId(refArray[0].id);
+      // Set default refinery
+      if (refineries.length > 0) {
+        setRefineryId(refineries[0].id);
       }
     } catch (e) {
       console.error("Error loading salvage form data:", e);
@@ -154,9 +157,14 @@ export function SalvageJobForm({ onJobCreated }: SalvageJobFormProps) {
         notes: notes || null
       };
 
+      const token = localStorage.getItem("token");
+
       const response = await fetch(`${API_URL}/production/jobs`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`  // AJOUTER CETTE LIGNE
+        },
         body: JSON.stringify(payload)
       });
 
@@ -192,7 +200,7 @@ export function SalvageJobForm({ onJobCreated }: SalvageJobFormProps) {
         style={{
           width: '100%',
           padding: '16px 24px',
-          background: isOpen 
+          background: isOpen
             ? `linear-gradient(135deg, ${COLORS.red}30 0%, ${COLORS.red}20 100%)`
             : `linear-gradient(135deg, ${COLORS.bgMedium}f5 0%, ${COLORS.bgDark}f5 100%)`,
           border: `1px solid ${isOpen ? COLORS.red : COLORS.bgLight}`,
@@ -289,7 +297,7 @@ export function SalvageJobForm({ onJobCreated }: SalvageJobFormProps) {
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-              
+
               {/* Refinery */}
               <div>
                 <label style={{
@@ -607,8 +615,8 @@ export function SalvageJobForm({ onJobCreated }: SalvageJobFormProps) {
                   marginTop: '8px',
                   width: '100%',
                   padding: '16px',
-                  background: submitting 
-                    ? COLORS.bgLight 
+                  background: submitting
+                    ? COLORS.bgLight
                     : `linear-gradient(135deg, ${COLORS.yellow} 0%, ${COLORS.yellowLight} 100%)`,
                   border: `1px solid ${submitting ? COLORS.bgLight : COLORS.yellow}`,
                   borderRadius: '2px',

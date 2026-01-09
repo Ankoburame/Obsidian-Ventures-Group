@@ -4,7 +4,7 @@ Handles refining jobs, inventory, and sales.
 """
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from sqlalchemy import func
+from sqlalchemy import func, text
 from datetime import datetime, timedelta
 from typing import Optional, List
 from decimal import Decimal
@@ -14,11 +14,11 @@ from database import get_db
 from core.security import get_current_user
 from models.user import User
 from models.refining import RefiningJob, RefiningJobMaterial
-from models.refinery import Refinery
 from models.material import Material
 from models.inventory import Inventory, InventoryEvent
 from models.sale import Sale
 from models.market import MarketPrice
+from models.location import Location
 
 router = APIRouter()
 
@@ -57,8 +57,8 @@ async def list_jobs(
     
     result = []
     for job in jobs:
-        # Get refinery info
-        refinery = db.query(Refinery).filter(Refinery.id == job.refinery_id).first()
+        # Get refinery info - SQL BRUT pour éviter le cache
+        refinery_result = db.execute(text("SELECT id, name, system FROM locations WHERE id = :id"), {"id": job.refinery_id}).fetchone()
         
         # Get materials
         materials = []
@@ -76,8 +76,8 @@ async def list_jobs(
             "id": job.id,
             "user_id": job.user_id,
             "refinery_id": job.refinery_id,
-            "refinery_name": refinery.name if refinery else "Unknown",
-            "refinery_system": refinery.system if refinery else "Unknown",
+            "refinery_name": refinery_result[1] if refinery_result else "Unknown",
+            "refinery_system": refinery_result[2] if refinery_result else "Unknown",
             "job_type": job.job_type,
             "total_cost": float(job.total_cost) if job.total_cost else 0,
             "processing_time": job.processing_time,
@@ -94,8 +94,6 @@ async def list_jobs(
     
     return result
 
-
-from pydantic import BaseModel
 
 class JobMaterialInput(BaseModel):
     material_id: int
@@ -132,10 +130,12 @@ async def create_job(
     }
     """
     try:
-        # Verify refinery exists
-        refinery = db.query(Refinery).filter(Refinery.id == job_input.refinery_id).first()
-        if not refinery:
-            raise HTTPException(status_code=404, detail="Refinery not found")
+        # Verify refinery exists - SQL brut
+        result = db.execute(text("SELECT id, name FROM locations WHERE id = :id"), {"id": job_input.refinery_id})
+        refinery_check = result.fetchone()
+        
+        if not refinery_check:
+            raise HTTPException(status_code=404, detail=f"Refinery not found (searched for ID {job_input.refinery_id})")
         
         # Create job
         start_time = datetime.utcnow()

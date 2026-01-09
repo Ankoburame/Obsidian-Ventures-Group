@@ -15,7 +15,7 @@ class RefiningJob(Base):
     
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
-    refinery_id = Column(Integer, ForeignKey("refineries.id", ondelete="CASCADE"), nullable=False, index=True)
+    refinery_id = Column(Integer, ForeignKey("locations.id"), nullable=False, index=True)
     
     job_type = Column(String(20), default="mining", nullable=False)  # mining | salvage
     total_cost = Column(Numeric(12, 2))
@@ -39,7 +39,7 @@ class RefiningJob(Base):
     
     # Relationships
     user = relationship("User", back_populates="refining_jobs")
-    refinery = relationship("Refinery", back_populates="refining_jobs")
+    refinery = relationship("Location", foreign_keys=[refinery_id])
     materials = relationship("RefiningJobMaterial", back_populates="job", cascade="all, delete-orphan")
     inventory_events = relationship("InventoryEvent", back_populates="refining_job")
     

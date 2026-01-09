@@ -6,12 +6,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 
 from core.config import settings
-from database import engine
+from database import engine, Base
 import models
+from api import reference
 
 # Import routers (à créer)
 #from api import auth, production, dashboard, market, cargo, reference, admin
-
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -75,6 +75,7 @@ app.include_router(reference.router, prefix="/reference", tags=["Reference Data"
 app.include_router(dashboard.router, prefix="/dashboard", tags=["Dashboard"])
 app.include_router(cargo.router, prefix="/cargo", tags=["Cargo/Commerce"])
 app.include_router(admin.router, prefix="/admin", tags=["Admin"])
+app.include_router(reference.router, prefix="/api/reference", tags=["reference"])
 
 
 if __name__ == "__main__":

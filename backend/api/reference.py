@@ -9,7 +9,6 @@ from typing import Optional, List
 from database import get_db
 from models.material import Material
 from models.location import Location
-from models.refinery import Refinery
 
 router = APIRouter()
 
@@ -98,35 +97,25 @@ async def list_locations(
         for loc in locations
     ]
 
-
+# backend/api/reference.py
 @router.get("/refineries")
-async def list_refineries(
-    system: Optional[str] = None,
-    skip: int = Query(0, ge=0),
-    limit: int = Query(100, ge=1, le=500),
-    db: Session = Depends(get_db)
-):
-    """
-    Get list of refineries.
-    
-    Filters:
-    - system: Filter by system
-    """
-    query = db.query(Refinery)
-    
-    if system:
-        query = query.filter(Refinery.system == system)
-    
-    refineries = query.offset(skip).limit(limit).all()
-    
+async def list_refineries():
+    """Get list of refinery locations - HARDCODED."""
     return [
-        {
-            "id": ref.id,
-            "name": ref.name,
-            "system": ref.system,
-            "location_id": ref.location_id,
-            "processing_time_modifier": float(ref.processing_time_modifier),
-            "cost_modifier": float(ref.cost_modifier)
-        }
-        for ref in refineries
+        {"id": 1158, "code": "ARC-L1", "name": "Mining Center - Refinery - ARC-L1", "system": "Stanton", "location_type": "refinery"},
+        {"id": 1159, "code": "ARC-L2", "name": "Mining Center - Refinery - ARC-L2", "system": "Stanton", "location_type": "refinery"},
+        {"id": 1160, "code": "ARC-L4", "name": "Mining Center - Refinery - ARC-L4", "system": "Stanton", "location_type": "refinery"},
+        {"id": 1173, "code": "CRU-L1", "name": "Mining Center - Refinery - CRU-L1", "system": "Stanton", "location_type": "refinery"},
+        {"id": 1174, "code": "HUR-L1", "name": "Mining Center - Refinery - HUR-L1", "system": "Stanton", "location_type": "refinery"},
+        {"id": 1175, "code": "HUR-L2", "name": "Mining Center - Refinery - HUR-L2", "system": "Stanton", "location_type": "refinery"},
+        {"id": 1176, "code": "MIC-L1", "name": "Mining Center - Refinery - MIC-L1", "system": "Stanton", "location_type": "refinery"},
+        {"id": 1177, "code": "MIC-L2", "name": "Mining Center - Refinery - MIC-L2", "system": "Stanton", "location_type": "refinery"},
+        {"id": 1178, "code": "MIC-L5", "name": "Mining Center - Refinery - MIC-L5", "system": "Stanton", "location_type": "refinery"},
+        {"id": 1384, "code": "CHECKMATE", "name": "Mining Center - Refinery - Checkmate", "system": "Stanton", "location_type": "refinery"},
+        {"id": 1390, "code": "ORBITUARY", "name": "Mining Center - Refinery - Orbituary", "system": "Stanton", "location_type": "refinery"},
+        {"id": 1412, "code": "RUIN", "name": "Mining Center - Refinery - Ruin Station", "system": "Stanton", "location_type": "refinery"},
+        {"id": 1478, "code": "STANGA", "name": "Mining Center - Refinery - Stanton Gateway (Pyro)", "system": "Stanton", "location_type": "refinery"},
+        {"id": 1265, "code": "PYRO-GW", "name": "Mining Center - Refinery - Pyro Gateway (Stanton)", "system": "Stanton", "location_type": "refinery"},
+        {"id": 1255, "code": "TERRA-GW", "name": "Mining Center - Refinery - Terra Gateway (Stanton)", "system": "Stanton", "location_type": "refinery"},
+        {"id": 1264, "code": "NYX-GW", "name": "Mining Center - Refinery - Nyx Gateway (Stanton)", "system": "Stanton", "location_type": "refinery"},
     ]

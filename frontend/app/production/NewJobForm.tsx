@@ -1,5 +1,5 @@
 // ============================================================
-// COMPOSANT: New Refining Job Form (Collapsible)
+// COMPOSANT: New Refining Job Form (Collapsible) - CORRIGÉ UEX
 // ============================================================
 
 import React, { useState, useEffect } from "react";
@@ -30,12 +30,15 @@ interface Material {
   id: number;
   name: string;
   category: string;
+  is_mineable: boolean;
 }
 
-interface Refinery {
+interface Location {
   id: number;
+  code: string;
   name: string;
   system: string;
+  location_type: string;
 }
 
 interface MaterialLine {
@@ -54,7 +57,7 @@ export function NewJobForm({ onJobCreated }: NewJobFormProps) {
   const [submitting, setSubmitting] = useState(false);
 
   // Data from API
-  const [refineries, setRefineries] = useState<Refinery[]>([]);
+  const [refineries, setRefineries] = useState<Location[]>([]);
   const [materials, setMaterials] = useState<Material[]>([]);
 
   // Form state
@@ -67,31 +70,37 @@ export function NewJobForm({ onJobCreated }: NewJobFormProps) {
   const [minutesTime, setMinutesTime] = useState<number>(0);
   const [notes, setNotes] = useState<string>("");
 
-  // Load refineries and materials
+  // Load refineries and materials from UEX data
   useEffect(() => {
     async function loadData() {
       setLoading(true);
       try {
-        const [refRes, matRes] = await Promise.all([
-          fetch(`${API_URL}/reference/refineries`),
-          fetch(`${API_URL}/reference/materials`)
+        const token = localStorage.getItem("token");
+        const headers = {
+          "Content-Type": "application/json",
+          ...(token && { Authorization: `Bearer ${token}` })
+        };
+
+        const [locRes, matRes] = await Promise.all([
+          fetch(`${API_URL}/reference/refineries`, { headers }),  // ✅ Utilise le nouvel endpoint
+          fetch(`${API_URL}/reference/materials`, { headers })
         ]);
 
-        const refData = await refRes.json();
+        const refData = await locRes.json();
         const matData = await matRes.json();
 
-        // FILTRE: Exclure les matériaux "Raw" (non raffinables)
-        const validData = Array.isArray(matData) ? matData : [];
-        const refinableMaterials = validData.filter((mat: Material) =>
-          !mat.name.includes('(Raw)') && !mat.name.endsWith('Raw')
-        );
-        setRefineries(refData);
-        setMaterials(refinableMaterials);  // ← Liste filtrée
+        // Protection contre null
+        const refineries = Array.isArray(refData) ? refData : [];
+        const materials = Array.isArray(matData) ? matData.filter((mat: Material) => mat.is_mineable === true) : [];
+
+        setRefineries(refineries);
+        setMaterials(materials);
 
         // Set default refinery
-        if (refData.length > 0) {
-          setRefineryId(refData[0].id);
+        if (refineries.length > 0) {
+          setRefineryId(refineries[0].id);
         }
+
       } catch (e) {
         console.error("Error loading form data:", e);
       }
@@ -124,6 +133,12 @@ export function NewJobForm({ onJobCreated }: NewJobFormProps) {
 
   const handleSubmit = async () => {
     // Validation
+    console.log("DEBUG Submit:", {
+      refineryId,
+      materialLines,
+      refineries,
+      materials
+    });
     if (!refineryId) {
       alert("Please select a refinery");
       return;
@@ -162,7 +177,7 @@ export function NewJobForm({ onJobCreated }: NewJobFormProps) {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,  // ✅ AJOUTER
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(payload),
       });
@@ -235,77 +250,39 @@ export function NewJobForm({ onJobCreated }: NewJobFormProps) {
         <span style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <span style={{
             display: 'inline-block',
-            width: '8px',
-            height: '8px',
-            background: isOpen ? COLORS.orange : COLORS.textTertiary,
+            width: '16px',
+            height: '16px',
             clipPath: 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)',
-            transition: 'background 0.3s ease'
+            background: isOpen ? COLORS.orange : COLORS.textSecondary
           }} />
           NEW REFINING JOB
         </span>
         {isOpen ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
       </button>
 
-      {/* Collapsible Form */}
-      <div style={{
-        maxHeight: isOpen ? '2000px' : '0',
-        overflow: 'hidden',
-        transition: 'max-height 0.5s ease-in-out',
-        marginTop: isOpen ? '16px' : '0'
-      }}>
+      {/* Form Content */}
+      {isOpen && (
         <div style={{
-          background: `linear-gradient(135deg, ${COLORS.bgDark}f8 0%, ${COLORS.bgMedium}f8 100%)`,
+          marginTop: '16px',
+          padding: '24px',
+          background: `linear-gradient(135deg, ${COLORS.bgMedium}f5 0%, ${COLORS.bgDark}f5 100%)`,
           border: `1px solid ${COLORS.orange}60`,
           borderRadius: '4px',
-          padding: '24px',
-          position: 'relative',
-          clipPath: 'polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px))'
+          boxShadow: `0 0 20px ${COLORS.orange}20`
         }}>
-          {/* Red header bar */}
-          <div style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            height: '3px',
-            background: `linear-gradient(90deg, ${COLORS.red}, ${COLORS.redDark}, transparent)`
-          }} />
-
-          {/* Corner accents */}
-          <div style={{
-            position: 'absolute',
-            top: 0,
-            right: 0,
-            width: '12px',
-            height: '12px',
-            borderTop: `1px solid ${COLORS.orange}`,
-            borderRight: `1px solid ${COLORS.orange}`
-          }} />
-
-          {/* Title */}
-          <div style={{
-            fontSize: '11px',
-            color: COLORS.red,
-            letterSpacing: '2px',
-            textTransform: 'uppercase',
-            fontWeight: 700,
-            marginBottom: '24px',
-            paddingTop: '4px',
-            fontFamily: 'monospace'
-          }}>
-            // RAFFINAGE :: SETUP
-          </div>
-
           {loading ? (
-            <div style={{ textAlign: 'center', padding: '40px', color: COLORS.textSecondary }}>
-              <Loader2 style={{ width: '32px', height: '32px', animation: 'spin 1s linear infinite', margin: '0 auto' }} />
-              <div style={{ marginTop: '12px', fontSize: '11px', fontFamily: 'monospace', letterSpacing: '1px' }}>
-                LOADING DATA...
-              </div>
+            <div style={{
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              padding: '40px',
+              color: COLORS.textSecondary
+            }}>
+              <Loader2 size={24} style={{ animation: 'spin 1s linear infinite', marginRight: '12px' }} />
+              Loading data...
             </div>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
               {/* Refinery Selection */}
               <div>
                 <label style={{
@@ -317,7 +294,7 @@ export function NewJobForm({ onJobCreated }: NewJobFormProps) {
                   marginBottom: '8px',
                   fontFamily: 'monospace'
                 }}>
-                  REFINERY STATION
+                  REFINERY LOCATION
                 </label>
                 <select
                   value={refineryId}
@@ -331,18 +308,28 @@ export function NewJobForm({ onJobCreated }: NewJobFormProps) {
                     color: COLORS.textPrimary,
                     fontSize: '13px',
                     fontFamily: 'monospace',
-                    cursor: 'pointer',
-                    outline: 'none'
+                    outline: 'none',
+                    cursor: 'pointer'
                   }}
                   onFocus={(e) => e.target.style.borderColor = COLORS.orange}
                   onBlur={(e) => e.target.style.borderColor = COLORS.bgLight}
                 >
                   {refineries.map(ref => (
                     <option key={ref.id} value={ref.id}>
-                      {ref.name} :: {ref.system}
+                      {ref.name} ({ref.system})
                     </option>
                   ))}
                 </select>
+                {refineries.length === 0 && (
+                  <p style={{
+                    marginTop: '8px',
+                    fontSize: '11px',
+                    color: COLORS.yellow,
+                    fontFamily: 'monospace'
+                  }}>
+                    ⚠️ No refineries found. Import locations from UEX first.
+                  </p>
+                )}
               </div>
 
               {/* Materials */}
@@ -356,44 +343,28 @@ export function NewJobForm({ onJobCreated }: NewJobFormProps) {
                   marginBottom: '12px',
                   fontFamily: 'monospace'
                 }}>
-                  MATERIALS TO REFINE
-                  <div style={{
-                    fontSize: '9px',
-                    color: COLORS.textTertiary,
-                    fontFamily: 'monospace',
-                    marginBottom: '8px',
-                    fontStyle: 'italic'
-                  }}>
-                    Note: Quantities are automatically converted to SCU (÷100) when collected
-                  </div>
+                  REFINED MATERIALS
                 </label>
 
-                <div style={{
-                  background: `${COLORS.bgDark}80`,
-                  border: `1px solid ${COLORS.bgLight}`,
-                  borderRadius: '2px',
-                  padding: '16px'
-                }}>
-                  {materialLines.map((line, idx) => (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  {materialLines.map((line, index) => (
                     <div key={line.id} style={{
                       display: 'grid',
-                      gridTemplateColumns: '1fr 150px 40px',
+                      gridTemplateColumns: '2fr 1fr auto',
                       gap: '12px',
-                      marginBottom: idx < materialLines.length - 1 ? '12px' : 0,
                       alignItems: 'center'
                     }}>
                       <select
                         value={line.material_id}
                         onChange={(e) => updateMaterialLine(line.id, 'material_id', Number(e.target.value))}
                         style={{
-                          padding: '10px',
-                          background: COLORS.bgMedium,
+                          padding: '12px',
+                          background: COLORS.bgDark,
                           border: `1px solid ${COLORS.bgLight}`,
                           borderRadius: '2px',
                           color: COLORS.textPrimary,
                           fontSize: '12px',
                           fontFamily: 'monospace',
-                          cursor: 'pointer',
                           outline: 'none'
                         }}
                         onFocus={(e) => e.target.style.borderColor = COLORS.orange}
@@ -411,70 +382,63 @@ export function NewJobForm({ onJobCreated }: NewJobFormProps) {
                         type="number"
                         value={line.quantity || ''}
                         onChange={(e) => updateMaterialLine(line.id, 'quantity', Number(e.target.value))}
-                        placeholder="Quantity"
+                        placeholder="Qty (SCU)"
                         min="0"
                         style={{
-                          padding: '10px',
-                          background: COLORS.bgMedium,
+                          padding: '12px',
+                          background: COLORS.bgDark,
                           border: `1px solid ${COLORS.bgLight}`,
                           borderRadius: '2px',
                           color: COLORS.orange,
-                          fontSize: '12px',
+                          fontSize: '13px',
                           fontFamily: 'monospace',
                           fontWeight: 600,
-                          outline: 'none'
+                          outline: 'none',
+                          textAlign: 'center'
                         }}
                         onFocus={(e) => e.target.style.borderColor = COLORS.orange}
                         onBlur={(e) => e.target.style.borderColor = COLORS.bgLight}
                       />
 
-                      <button
-                        onClick={() => removeMaterialLine(line.id)}
-                        disabled={materialLines.length === 1}
-                        style={{
-                          padding: '10px',
-                          background: materialLines.length === 1 ? COLORS.bgLight : `${COLORS.red}30`,
-                          border: `1px solid ${materialLines.length === 1 ? COLORS.bgLight : COLORS.red}`,
-                          borderRadius: '2px',
-                          color: materialLines.length === 1 ? COLORS.textTertiary : COLORS.red,
-                          cursor: materialLines.length === 1 ? 'not-allowed' : 'pointer',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          transition: 'all 0.2s ease'
-                        }}
-                        onMouseEnter={(e) => {
-                          if (materialLines.length > 1) {
-                            e.currentTarget.style.background = `${COLORS.red}50`;
-                          }
-                        }}
-                        onMouseLeave={(e) => {
-                          if (materialLines.length > 1) {
-                            e.currentTarget.style.background = `${COLORS.red}30`;
-                          }
-                        }}
-                      >
-                        <Trash2 size={14} />
-                      </button>
+                      {materialLines.length > 1 && (
+                        <button
+                          onClick={() => removeMaterialLine(line.id)}
+                          style={{
+                            padding: '12px',
+                            background: `${COLORS.red}20`,
+                            border: `1px solid ${COLORS.red}`,
+                            borderRadius: '2px',
+                            color: COLORS.red,
+                            cursor: 'pointer',
+                            transition: 'all 0.2s ease'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.background = `${COLORS.red}40`;
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.background = `${COLORS.red}20`;
+                          }}
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      )}
                     </div>
                   ))}
 
                   <button
                     onClick={addMaterialLine}
                     style={{
-                      marginTop: '12px',
-                      width: '100%',
-                      padding: '10px',
+                      padding: '12px',
                       background: `${COLORS.greenOlive}20`,
                       border: `1px dashed ${COLORS.greenOlive}`,
                       borderRadius: '2px',
                       color: COLORS.greenOlive,
                       fontSize: '11px',
-                      fontFamily: 'monospace',
-                      fontWeight: 600,
+                      fontWeight: 700,
                       letterSpacing: '1px',
                       textTransform: 'uppercase',
                       cursor: 'pointer',
+                      fontFamily: 'monospace',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
@@ -693,7 +657,7 @@ export function NewJobForm({ onJobCreated }: NewJobFormProps) {
             </div>
           )}
         </div>
-      </div>
+      )}
 
       <style jsx>{`
         @keyframes spin {
