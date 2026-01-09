@@ -21,9 +21,9 @@ router = APIRouter()
 class TradeRunInput(BaseModel):
     commodity_name: str
     quantity: float
-    buy_location_id: int
+    buy_location_id: str
     buy_price: float
-    sell_location_id: int
+    sell_location_id: str
     sell_price: float
     notes: Optional[str] = None
 

@@ -109,9 +109,13 @@ export default function CargoRunsTracker() {
         notes: notes || undefined
       };
 
-      const res = await fetch(`${API_URL}/corgo/runs`, {
+      const token = localStorage.getItem("token");
+      const res = await fetch(`${API_URL}/cargo/runs`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
         body: JSON.stringify(payload)
       });
 
