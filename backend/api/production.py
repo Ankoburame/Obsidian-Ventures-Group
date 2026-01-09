@@ -341,18 +341,20 @@ async def create_sale(
             Inventory.material_id == sale_input.material_id
         ).first()
         
-        if not inv or inv.quantity < Decimal(str(sale_input.quantity)):
+        if not inv or inv.quantity < (Decimal(str(sale_input.quantity)) - Decimal("0.01")):
             raise HTTPException(status_code=400, detail="Insufficient inventory")
         
         # Calculate revenue
-        total_revenue = Decimal(str(sale_input.quantity)) * Decimal(str(sale_input.unit_price))
+        quantity_to_sell = min(Decimal(str(sale_input.quantity)), inv.quantity)
+
+        total_revenue = quantity_to_sell * Decimal(str(sale_input.unit_price))
         
         # Create sale
         sale = Sale(
             user_id=current_user.id,
             material_id=sale_input.material_id,
             location_id=sale_input.location_id,
-            quantity=Decimal(str(sale_input.quantity)),
+            quantity=quantity_to_sell,
             unit_price=Decimal(str(sale_input.unit_price)),
             total_revenue=total_revenue,
             notes=sale_input.notes
@@ -361,7 +363,7 @@ async def create_sale(
         db.flush()
         
         # Update inventory
-        inv.quantity -= Decimal(str(sale_input.quantity))
+        inv.quantity -= quantity_to_sell
         inv.last_updated = datetime.utcnow()
         
         # Create inventory event
