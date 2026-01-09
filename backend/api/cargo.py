@@ -108,11 +108,14 @@ async def deliver_run(
     """Mark run as delivered."""
     run = db.query(CargoRun).filter(
         CargoRun.id == run_id,
-        CargoRun.user_id == current_user.id
+        CargoRun.user_id == current_user.id  # ✅ Vérifie que c'est bien le run de l'user
     ).first()
     
     if not run:
         raise HTTPException(status_code=404, detail="Run not found")
+    
+    if run.status == "delivered":
+        raise HTTPException(status_code=400, detail="Already delivered")
     
     run.status = "delivered"
     run.delivered_at = datetime.utcnow()
