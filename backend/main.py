@@ -73,7 +73,7 @@ app.include_router(production.router, prefix="/production", tags=["Production"])
 app.include_router(market.router, prefix="/market", tags=["Market"])
 app.include_router(reference.router, prefix="/reference", tags=["Reference Data"])
 app.include_router(dashboard.router, prefix="/dashboard", tags=["Dashboard"])
-app.include_router(cargo.router, prefix="/cargo", tags=["Cargo/Commerce"])
+app.include_router(cargo.router, prefix="/cargo", tags=["Cargo"])
 app.include_router(admin.router, prefix="/admin", tags=["Admin"])
 app.include_router(reference.router, prefix="/api/reference", tags=["reference"])
 

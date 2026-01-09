@@ -74,7 +74,12 @@ export default function CargoRunsTracker() {
 
   async function loadRuns() {
     try {
-      const res = await fetch(`${API_URL}/cargo/runs`);
+      const token = localStorage.getItem("token");
+      const res = await fetch(`${API_URL}/cargo/runs`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
       if (!res.ok) throw new Error("Failed to fetch runs");
       const data = await res.json();
       setRuns(data);
@@ -104,7 +109,7 @@ export default function CargoRunsTracker() {
         notes: notes || undefined
       };
 
-      const res = await fetch(`${API_URL}/commerce/runs`, {
+      const res = await fetch(`${API_URL}/corgo/runs`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
@@ -133,7 +138,7 @@ export default function CargoRunsTracker() {
 
   async function handleDeliver(id: number) {
     try {
-      const res = await fetch(`${API_URL}/commerce/runs/${id}/deliver`, {
+      const res = await fetch(`${API_URL}/cargo/runs/${id}/deliver`, {
         method: 'POST'
       });
 
@@ -149,7 +154,7 @@ export default function CargoRunsTracker() {
     if (!confirm("Cancel this cargo run?")) return;
 
     try {
-      const res = await fetch(`${API_URL}/commerce/runs/${id}/cancel`, {
+      const res = await fetch(`${API_URL}/cargo/runs/${id}/cancel`, {
         method: 'POST'
       });
 
@@ -203,7 +208,7 @@ export default function CargoRunsTracker() {
         style={{
           width: '100%',
           padding: '16px 24px',
-          background: isFormOpen 
+          background: isFormOpen
             ? `linear-gradient(135deg, ${COLORS.cyan}30 0%, ${COLORS.cyan}20 100%)`
             : `linear-gradient(135deg, ${COLORS.bgMedium}f5 0%, ${COLORS.bgDark}f5 100%)`,
           border: `1px solid ${isFormOpen ? COLORS.cyan : COLORS.bgLight}`,
@@ -529,8 +534,8 @@ export default function CargoRunsTracker() {
               marginTop: '24px',
               width: '100%',
               padding: '16px',
-              background: submitting 
-                ? COLORS.bgLight 
+              background: submitting
+                ? COLORS.bgLight
                 : `linear-gradient(135deg, ${COLORS.cyan} 0%, ${COLORS.cyanLight} 100%)`,
               border: `1px solid ${submitting ? COLORS.bgLight : COLORS.cyan}`,
               borderRadius: '2px',
