@@ -341,7 +341,7 @@ async def create_sale(
             Inventory.material_id == sale_input.material_id
         ).first()
         
-        if not inv or inv.quantity < (Decimal(str(sale_input.quantity)) - Decimal("1.0")):
+        if not inv or inv.quantity < (Decimal(str(sale_input.quantity)) - Decimal("2.0")):
             raise HTTPException(status_code=400, detail="Insufficient inventory")
         
         # Calculate revenue
