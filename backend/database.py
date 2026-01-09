@@ -11,10 +11,17 @@ from core.config import settings
 # Create SQLAlchemy engine
 engine = create_engine(
     settings.DATABASE_URL,
-    pool_pre_ping=True,  # Verify connections before using
+    pool_pre_ping=True,
     pool_size=10,
-    max_overflow=20
+    max_overflow=20,
+    pool_recycle=3600,
+    connect_args={"options": "-c search_path=public"}  # ✅ Force le schéma public
 )
+from sqlalchemy import MetaData
+metadata = MetaData()
+metadata.reflect(bind=engine)
+metadata.clear() 
+
 
 # Create session factory
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
