@@ -98,7 +98,8 @@ export function NewJobForm({ onJobCreated }: NewJobFormProps) {
 
         // Set default refinery
         if (refineries.length > 0) {
-          setRefineryId(refineries[0].id);
+          setRefineryId(refineries[0].id); // ✅ Force toujours le premier ID
+          console.log("✅ Set refinery to:", refineries[0].id, refineries[0].name);
         }
 
       } catch (e) {
@@ -133,12 +134,7 @@ export function NewJobForm({ onJobCreated }: NewJobFormProps) {
 
   const handleSubmit = async () => {
     // Validation
-    console.log("DEBUG Submit:", {
-      refineryId,
-      materialLines,
-      refineries,
-      materials
-    });
+    console.log("🔍 DEBUG:", { refineryId, refineries: refineries.slice(0, 3) });
     if (!refineryId) {
       alert("Please select a refinery");
       return;
@@ -298,7 +294,11 @@ export function NewJobForm({ onJobCreated }: NewJobFormProps) {
                 </label>
                 <select
                   value={refineryId}
-                  onChange={(e) => setRefineryId(Number(e.target.value))}
+                  onChange={(e) => {
+                    const newId = Number(e.target.value);
+                    console.log("🔄 Refinery changed to:", newId);
+                    setRefineryId(newId);
+                  }}
                   style={{
                     width: '100%',
                     padding: '12px',

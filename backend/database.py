@@ -19,7 +19,6 @@ engine = create_engine(
 )
 from sqlalchemy import MetaData
 metadata = MetaData()
-metadata.reflect(bind=engine)
 metadata.clear() 
 
 

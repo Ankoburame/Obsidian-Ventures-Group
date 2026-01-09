@@ -130,12 +130,16 @@ def extract_location_data(terminal: Dict[str, Any]) -> Dict[str, Any]:
         "code": code,
         "system": system,
         "planet": planet,
-        "location": location,
+        "moon": location,
         "location_type": location_type,
-        "full_path": full_path,
-        "distance_from_reference": None,  # À calculer plus tard si nécessaire
-        "qt_time_minutes": None,  # À calculer plus tard si nécessaire
-    }
+        "is_available": True,
+        "has_trade_terminals": True,  # Si c'est un terminal UEX
+        "has_refinery": "refinery" in terminal_type.lower(),
+        "has_shops": True,
+        "faction": None,
+        "latitude": None,
+        "longitude": None,
+        }
 
 
 def import_locations(db: Session, dry_run: bool = False, update_existing: bool = False):
