@@ -130,50 +130,47 @@ async def create_job(
     }
     """
     try:
-        # Verify refinery exists - SQL brut
-        result = db.execute(text("SELECT id, name FROM locations WHERE id = :id"), {"id": job_input.refinery_id})
-        refinery_check = db.execute(
-            text(f"SELECT id, name FROM locations WHERE id = {job_input.refinery_id}")
-        ).fetchone()
-        
-        # Create job
+        # Create job - SQL BRUT pour bypasser le cache SQLAlchemy
         start_time = datetime.utcnow()
         end_time = start_time + timedelta(minutes=job_input.processing_time)
         
-        new_job = RefiningJob(
-            user_id=current_user.id,
-            refinery_id=job_input.refinery_id,
-            job_type=job_input.job_type,
-            total_cost=Decimal(str(job_input.total_cost)),
-            processing_time=job_input.processing_time,
-            status="processing",
-            start_time=start_time,
-            end_time=end_time,
-            notes=job_input.notes
-        )
+        # Insert job
+        result = db.execute(text("""
+            INSERT INTO refining_jobs (user_id, refinery_id, job_type, total_cost, processing_time, status, start_time, end_time, notes)
+            VALUES (:user_id, :refinery_id, :job_type, :total_cost, :processing_time, 'processing', :start_time, :end_time, :notes)
+            RETURNING id
+        """), {
+            "user_id": current_user.id,
+            "refinery_id": job_input.refinery_id,
+            "job_type": job_input.job_type,
+            "total_cost": float(job_input.total_cost),
+            "processing_time": job_input.processing_time,
+            "start_time": start_time,
+            "end_time": end_time,
+            "notes": job_input.notes
+        })
         
-        db.add(new_job)
-        db.flush()  # Get job.id
+        job_id = result.fetchone()[0]
         
         # Add materials
         for mat in job_input.materials:
-            job_material = RefiningJobMaterial(
-                job_id=new_job.id,
-                material_id=mat.material_id,
-                quantity_refined=Decimal(str(mat.quantity_refined)),
-                unit=mat.unit
-            )
-            db.add(job_material)
+            db.execute(text("""
+                INSERT INTO refining_job_materials (job_id, material_id, quantity_refined, unit)
+                VALUES (:job_id, :material_id, :quantity_refined, :unit)
+            """), {
+                "job_id": job_id,
+                "material_id": mat.material_id,
+                "quantity_refined": float(mat.quantity_refined),
+                "unit": mat.unit
+            })
         
         db.commit()
-        db.refresh(new_job)
         
-        return {"message": "Job created successfully", "job_id": new_job.id}
+        return {"message": "Job created successfully", "job_id": job_id}
     
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
-
 
 @router.post("/jobs/{job_id}/collect")
 async def collect_job(
