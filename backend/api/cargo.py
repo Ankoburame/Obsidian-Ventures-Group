@@ -13,7 +13,7 @@ from pydantic import BaseModel
 from database import get_db
 from core.security import get_current_user
 from models.user import User
-from models.cargo_run import CargoRun
+from models.cargo import CargoRun
 
 router = APIRouter()
 
