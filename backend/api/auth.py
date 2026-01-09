@@ -85,7 +85,8 @@ async def login(
             "id": user.id,
             "username": user.username,
             "email": user.email,
-            "is_admin": user.is_admin
+            "is_admin": user.is_admin,
+            "role": user.role
         }
     }
 

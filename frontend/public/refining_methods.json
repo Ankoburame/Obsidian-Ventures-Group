@@ -1,0 +1,65 @@
+[
+  {
+    "name": "Cormack Method",
+    "time": "High",
+    "cost": "Medium",
+    "yield": "Low",
+    "description": "Rapide mais cher et faible rendement"
+  },
+  {
+    "name": "Pyrometric Cromalysis",
+    "time": "Very Low",
+    "cost": "Low",
+    "yield": "High",
+    "description": "Optimal"
+  },
+  {
+    "name": "Gaskin Process",
+    "time": "Low",
+    "cost": "Medium",
+    "yield": "High",
+    "description": "Low but effective"
+  },
+  {
+    "name": "XCR Reaction",
+    "time": "High",
+    "cost": "High",
+    "yield": "Low",
+    "description": "Scap"
+  },
+  {
+    "name": "Ferron Exchange",
+    "time": "Low",
+    "cost": "Low",
+    "yield": "Medium",
+    "description": "By default"
+  },
+  {
+    "name": "Electrostarolysis",
+    "time": "Medium",
+    "cost": "Low",
+    "yield": "Low",
+    "description": "Scrap"
+  },
+  {
+    "name": "Dinyx Solventation",
+    "time": "Low",
+    "cost": "High",
+    "yield": "High",
+    "description": "Expensive"
+  },
+  {
+    "name": "Thermonatic Deposition",
+    "time": "High",
+    "cost": "High",
+    "yield": "Medium",
+    "description": "Screw job"
+  },
+  {
+    "name": "Kazen Winnowing",
+    "time": "Medium",
+    "cost": "Medium",
+    "yield": "Medium",
+    "description": "Medium"
+  }
+]

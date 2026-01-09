@@ -1,0 +1,93 @@
+{
+  "surface_deposits": [
+    {
+      "type": "Shale",
+      "category": "Surface Deposit",
+      "signatures": [1730, 3460, 5190, 6920, 8650, 10380, 12110, 13840, 15570, 17300, 19030, 20760, 22490, 24220, 25950, 27680, 29410, 31140]
+    },
+    {
+      "type": "Felsic",
+      "category": "Surface Deposit",
+      "signatures": [1770, 3540, 5310, 7080, 8850, 10620, 12390, 14160, 15930, 17700, 19470, 21240, 23010, 24780, 26550, 28320, 30090, 31860]
+    },
+    {
+      "type": "Obsidian",
+      "category": "Surface Deposit",
+      "signatures": [1790, 3580, 5370, 7160, 8950, 10740, 12530, 14320, 16110, 17900, 19690, 21480, 23270, 25060, 26850, 28640, 30430, 32220]
+    },
+    {
+      "type": "Atacamite",
+      "category": "Surface Deposit",
+      "signatures": [1800, 3600, 5400, 7200, 9000, 10800, 12600, 14400, 16200, 18000, 19800, 21600, 23400, 25200, 27000, 28800, 30600, 32400]
+    },
+    {
+      "type": "Quartzite",
+      "category": "Surface Deposit",
+      "signatures": [1820, 3640, 5460, 7280, 9100, 10920, 12740, 14560, 16380, 18200, 20020, 21840, 23660, 25480, 27300, 29120, 30940, 32760]
+    },
+    {
+      "type": "Gneiss",
+      "category": "Surface Deposit",
+      "signatures": [1840, 3680, 5520, 7360, 9200, 11040, 12880, 14720, 16560, 18400, 20240, 22080, 23920, 25760, 27600, 29440, 31280, 33120]
+    },
+    {
+      "type": "Granite",
+      "category": "Surface Deposit",
+      "signatures": [1920, 3840, 5760, 7680, 9600, 11520, 13440, 15360, 17280, 19200, 21120, 23040, 24960, 26880, 28800, 30720, 32640, 34560]
+    },
+    {
+      "type": "Igneous",
+      "category": "Surface Deposit",
+      "signatures": [1950, 3900, 5850, 7800, 9750, 11700, 13650, 15600, 17550, 19500, 21450, 23400, 25350, 27300, 29250, 31200, 33150, 35100]
+    }
+  ],
+  "space_ice": [
+    {
+      "type": "Ice Type i",
+      "category": "Space Ice",
+      "signatures": [1660, 3320, 4980, 6640, 8300, 9960, 11620, 13280]
+    }
+  ],
+  "space_asteroids": [
+    {
+      "type": "Asteroid C",
+      "category": "Space Asteroid",
+      "signatures": [1700, 3400, 5100, 6800, 8500, 10200, 11900, 13600]
+    },
+    {
+      "type": "Asteroid S",
+      "category": "Space Asteroid",
+      "signatures": [1720, 3440, 5160, 6880, 8600, 10320, 12040, 13760]
+    },
+    {
+      "type": "Asteroid M",
+      "category": "Space Asteroid",
+      "signatures": [1850, 3700, 5550, 7400, 9250, 11100, 12950, 14800]
+    },
+    {
+      "type": "Asteroid Q",
+      "category": "Space Asteroid",
+      "signatures": [1870, 3740, 5610, 7480, 9350, 11220, 13090, 14960]
+    },
+    {
+      "type": "Asteroid E",
+      "category": "Space Asteroid",
+      "signatures": [1900, 3800, 5700, 7600, 9500, 11400, 13300, 15200]
+    },
+    {
+      "type": "Asteroid P",
+      "category": "Space Asteroid",
+      "signatures": [1750, 3500, 5250, 7000, 8750, 10500, 12250, 14000]
+    }
+  ],
+  "salvage": {
+    "debris": {
+      "description": "Multiples of 2000",
+      "pattern": "2000, 4000, 6000, 8000, etc."
+    },
+    "wrecks": {
+      "description": "3 distinct signatures",
+      "note": "Specific values not provided in source data"
+    }
+  }
+}

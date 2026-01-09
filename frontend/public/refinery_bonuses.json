@@ -1,0 +1,270 @@
+{
+  "refineries": [
+    {
+      "code": "CRU-L1",
+      "name": "CRU-L1 Ambitious Dream Station",
+      "system": "Stanton",
+      "parent": "Crusader",
+      "bonuses": {
+        "Beryl": 7,
+        "Corundum": 7,
+        "Tungsten": 2,
+        "Iron": 2,
+        "Laranite": -8,
+        "Bexalite": -6,
+        "Gold": -6
+      }
+    },
+    {
+      "code": "CRU-L4",
+      "name": "CRU-L4 Shallow Fields Station",
+      "system": "Stanton",
+      "parent": "Crusader",
+      "bonuses": {
+        "Hephaestanite": 4,
+        "Tungsten": 3,
+        "Bexalite": 2,
+        "Laranite": 1,
+        "Taranite": -3,
+        "Aluminium": -4,
+        "Titanium": -6
+      }
+    },
+    {
+      "code": "CRU-L5",
+      "name": "CRU-L5 Beautiful Glen Station",
+      "system": "Stanton",
+      "parent": "Crusader",
+      "bonuses": {
+        "Bexalite": 7,
+        "Tungsten": 6,
+        "Hephaestanite": 5,
+        "Laranite": 3,
+        "Taranite": -5,
+        "Titanium": -7,
+        "Aluminium": -8
+      }
+    },
+    {
+      "code": "HUR-L1",
+      "name": "HUR-L1 Green Glade Station",
+      "system": "Stanton",
+      "parent": "Hurston",
+      "bonuses": {
+        "Tungsten": 4,
+        "Quantainium": 2,
+        "Laranite": 2,
+        "Hephaestanite": -1,
+        "Beryl": -2,
+        "Bexalite": -4,
+        "Gold": -5
+      }
+    },
+    {
+      "code": "HUR-L2",
+      "name": "HUR-L2 Faithful Dream Station",
+      "system": "Stanton",
+      "parent": "Hurston",
+      "bonuses": {
+        "Beryl": 5,
+        "Gold": 5,
+        "Hephaestanite": 3,
+        "Laranite": 1,
+        "Bexalite": -4,
+        "Tungsten": -5,
+        "Quantainium": -7
+      }
+    },
+    {
+      "code": "HUR-L3",
+      "name": "HUR-L3 Thundering Express Station",
+      "system": "Stanton",
+      "parent": "Hurston",
+      "bonuses": {
+        "Gold": 8,
+        "Beryl": 7,
+        "Hephaestanite": 5,
+        "Laranite": 2,
+        "Bexalite": -6,
+        "Tungsten": -8,
+        "Quantainium": -10
+      }
+    },
+    {
+      "code": "HUR-L4",
+      "name": "HUR-L4 Melodic Fields Station",
+      "system": "Stanton",
+      "parent": "Hurston",
+      "bonuses": {
+        "Agricium": 6,
+        "Laranite": 4,
+        "Hephaestanite": 3,
+        "Beryl": 2,
+        "Gold": -2,
+        "Tungsten": -3,
+        "Bexalite": -5
+      }
+    },
+    {
+      "code": "HUR-L5",
+      "name": "HUR-L5 High Course Station",
+      "system": "Stanton",
+      "parent": "Hurston",
+      "bonuses": {
+        "Laranite": 6,
+        "Agricium": 5,
+        "Hephaestanite": 4,
+        "Beryl": 3,
+        "Gold": -3,
+        "Tungsten": -5,
+        "Bexalite": -7
+      }
+    },
+    {
+      "code": "ARC-L1",
+      "name": "ARC-L1 Wide Forest Station",
+      "system": "Stanton",
+      "parent": "ArcCorp",
+      "bonuses": {
+        "Agricium": 9,
+        "Laranite": 7,
+        "Hephaestanite": 6,
+        "Quantainium": 3,
+        "Tungsten": -6,
+        "Bexalite": -9,
+        "Gold": -10
+      }
+    },
+    {
+      "code": "MIC-L1",
+      "name": "MIC-L1 Shallow Frontier Station",
+      "system": "Stanton",
+      "parent": "microTech",
+      "bonuses": {
+        "Quantainium": 7,
+        "Agricium": 4,
+        "Laranite": 3,
+        "Hephaestanite": 2,
+        "Beryl": -3,
+        "Gold": -5,
+        "Bexalite": -7
+      }
+    },
+    {
+      "code": "MIC-L2",
+      "name": "MIC-L2 Long Forest Station",
+      "system": "Stanton",
+      "parent": "microTech",
+      "bonuses": {
+        "Bexalite": 9,
+        "Gold": 9,
+        "Tungsten": 9,
+        "Titanium": 6,
+        "Corundum": 6,
+        "Quantainium": -6,
+        "Agricium": -8
+      }
+    },
+    {
+      "code": "MIC-L5",
+      "name": "MIC-L5 Shady Way Station",
+      "system": "Stanton",
+      "parent": "microTech",
+      "bonuses": {
+        "Titanium": 13,
+        "Bexalite": 12,
+        "Savrilium": 9,
+        "Lindinium": 9,
+        "Torite": 6,
+        "Agricium": -9,
+        "Quantainium": -11
+      }
+    },
+    {
+      "code": "LEVSKI",
+      "name": "Levski",
+      "system": "Nyx",
+      "parent": "Delamar",
+      "bonuses": {
+        "Ice": 10,
+        "Tin": 9,
+        "Taranite": 8,
+        "Bexalite": 8,
+        "Borase": 8,
+        "Beryl": 8,
+        "Agricium": 8,
+        "Hephaestanite": 8,
+        "Tungsten": 8,
+        "Titanium": 8,
+        "Iron": 8,
+        "Quartz": 8,
+        "Corundum": 8,
+        "Copper": 8,
+        "Aluminium": 8,
+        "Silicon": 8,
+        "Savrilium": 1,
+        "Torite": 1
+      }
+    },
+    {
+      "code": "CHECKMATE",
+      "name": "Checkmate Station",
+      "system": "Pyro",
+      "parent": "Pyro III",
+      "bonuses": {
+        "Tungsten": 4,
+        "Quantainium": 2,
+        "Laranite": 2,
+        "Hephaestanite": -1,
+        "Beryl": -2,
+        "Bexalite": -4,
+        "Gold": -5
+      }
+    },
+    {
+      "code": "ORBITUARY",
+      "name": "Orbituary Station",
+      "system": "Pyro",
+      "parent": "Pyro IV",
+      "bonuses": {
+        "Tungsten": 4,
+        "Quantainium": 2,
+        "Laranite": 2,
+        "Hephaestanite": -1,
+        "Beryl": -2,
+        "Bexalite": -4,
+        "Gold": -5
+      }
+    },
+    {
+      "code": "RUIN",
+      "name": "Ruin Station",
+      "system": "Pyro",
+      "parent": "Pyro VI",
+      "bonuses": {
+        "Tungsten": 4,
+        "Quantainium": 2,
+        "Laranite": 2,
+        "Hephaestanite": -1,
+        "Beryl": -2,
+        "Bexalite": -4,
+        "Gold": -5
+      }
+    },
+    {
+      "code": "PYR-ST",
+      "name": "Pyro Station Gateway",
+      "system": "Pyro",
+      "parent": "Pyro I",
+      "bonuses": {
+        "Tungsten": 4,
+        "Quantainium": 2,
+        "Laranite": 2,
+        "Hephaestanite": -1,
+        "Beryl": -2,
+        "Bexalite": -4,
+        "Gold": -5
+      }
+    }
+  ]
+}
