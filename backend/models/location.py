@@ -30,8 +30,6 @@ class Location(Base):
     
     # Relationships
     sales = relationship("Sale", back_populates="location")
-    cargo_runs_origin = relationship("CargoRun", foreign_keys="CargoRun.origin_location_id", back_populates="origin_location")
-    cargo_runs_destination = relationship("CargoRun", foreign_keys="CargoRun.destination_location_id", back_populates="destination_location")
     
     def __repr__(self):
         return f"<Location(id={self.id}, code='{self.code}', name='{self.name}')>"

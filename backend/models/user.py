@@ -28,7 +28,6 @@ class User(Base):
     inventory = relationship("Inventory", back_populates="user", cascade="all, delete-orphan")
     sales = relationship("Sale", back_populates="user", cascade="all, delete-orphan")
     cargo_runs = relationship("CargoRun", back_populates="user", cascade="all, delete-orphan")
-    cargo_runs = relationship("CargoRun", back_populates="user")
     
     def __repr__(self):
         return f"<User(id={self.id}, username='{self.username}')>"
