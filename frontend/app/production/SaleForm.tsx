@@ -93,7 +93,7 @@ export function SaleForm({ inventory, onSaleCompleted }: SaleFormProps) {
       const payload = {
         material_id: selectedItem!.material_id,       // ✅ FIX
         refinery_source_id: selectedItem!.refinery_id, // ✅ FIX
-        quantity_sold: quantity,
+        quantity: quantity,
         unit_price: unitPrice,
         sale_location_id: null,  // ✅ FIX (ou retire complètement cette ligne)
         refining_cost: refiningCost || 0,

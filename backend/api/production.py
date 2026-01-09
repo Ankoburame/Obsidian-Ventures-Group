@@ -253,12 +253,28 @@ async def get_inventory(
     db: Session = Depends(get_db)
 ):
     """
-    Get user's inventory with estimated values.
+    Get user's inventory with estimated values and refinery source.
     """
-    inventory_items = db.query(Inventory).filter(
-        Inventory.user_id == current_user.id,
-        Inventory.quantity > 0
-    ).all()
+    # Get inventory with last refinery source from refining jobs
+    query = text("""
+        SELECT DISTINCT ON (i.material_id)
+            i.id,
+            i.material_id,
+            i.quantity,
+            i.unit,
+            i.last_updated,
+            rj.refinery_id,
+            l.name as refinery_name,
+            l.system as refinery_system
+        FROM inventory i
+        LEFT JOIN inventory_events ie ON ie.user_id = i.user_id AND ie.material_id = i.material_id AND ie.event_type = 'refining_completed'
+        LEFT JOIN refining_jobs rj ON rj.id = ie.refining_job_id
+        LEFT JOIN locations l ON l.id = rj.refinery_id
+        WHERE i.user_id = :user_id AND i.quantity > 0
+        ORDER BY i.material_id, ie.created_at DESC
+    """)
+    
+    inventory_items = db.execute(query, {"user_id": current_user.id}).fetchall()
     
     result = []
     for inv in inventory_items:
@@ -266,18 +282,19 @@ async def get_inventory(
         market_price = db.query(MarketPrice).filter(MarketPrice.material_id == inv.material_id).first()
         
         avg_price = float(market_price.avg_sell_price) if market_price and market_price.avg_sell_price else 0
-        estimated_value = float(inv.quantity) * avg_price
+        estimated_total = float(inv.quantity) * avg_price
         
         result.append({
             "id": inv.id,
+            "refinery_id": inv.refinery_id or 0,
+            "refinery_name": inv.refinery_name or "Unknown Source",
+            "refinery_system": inv.refinery_system or "Unknown",
             "material_id": inv.material_id,
             "material_name": material.name if material else "Unknown",
-            "category": material.category if material else None,
             "quantity": float(inv.quantity),
             "unit": inv.unit,
-            "avg_sell_price": avg_price,
-            "estimated_value": round(estimated_value, 2),
-            "estimated_total_value": round(estimated_value, 2),  # Alias
+            "estimated_unit_price": avg_price,
+            "estimated_total_value": round(estimated_total, 2),
             "last_updated": inv.last_updated.isoformat() if inv.last_updated else None
         })
     
