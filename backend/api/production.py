@@ -172,6 +172,45 @@ async def create_job(
         db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
 
+@router.delete("/jobs/{job_id}")
+async def delete_job(
+    job_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Delete a refining job (only if not collected yet).
+    """
+    try:
+        # Get job
+        job = db.query(RefiningJob).filter(
+            RefiningJob.id == job_id,
+            RefiningJob.user_id == current_user.id
+        ).first()
+        
+        if not job:
+            raise HTTPException(status_code=404, detail="Job not found")
+        
+        if job.status == "collected":
+            raise HTTPException(status_code=400, detail="Cannot delete collected job")
+        
+        # Delete materials first (foreign key constraint)
+        db.execute(text("DELETE FROM refining_job_materials WHERE job_id = :job_id"), {"job_id": job_id})
+        
+        # Delete job
+        db.execute(text("DELETE FROM refining_jobs WHERE id = :job_id"), {"job_id": job_id})
+        
+        db.commit()
+        
+        return {"message": "Job deleted successfully", "job_id": job_id}
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @router.post("/jobs/{job_id}/collect")
 async def collect_job(
     job_id: int,
@@ -199,35 +238,44 @@ async def collect_job(
             raise HTTPException(status_code=400, detail="Job not ready yet")
         
         # Transfer materials to inventory
-        # Transfer materials to inventory
+        # Group materials by material_id to avoid duplicate key violations
+        materials_by_id = {}
         for jm in job.materials:
-            # ✅ CONVERTIR unités brutes en SCU (diviser par 100)
             quantity_in_scu = jm.quantity_refined / 100
-            
+            if jm.material_id in materials_by_id:
+                materials_by_id[jm.material_id]['quantity'] += quantity_in_scu
+            else:
+                materials_by_id[jm.material_id] = {
+                    'quantity': quantity_in_scu,
+                    'unit': jm.unit
+                }
+        
+        # Insert/update inventory
+        for material_id, data in materials_by_id.items():
             # Upsert inventory
             inv = db.query(Inventory).filter(
                 Inventory.user_id == current_user.id,
-                Inventory.material_id == jm.material_id
+                Inventory.material_id == material_id
             ).first()
             
             if inv:
-                inv.quantity += quantity_in_scu  # ✅ Utiliser la quantité convertie
+                inv.quantity += data['quantity']
                 inv.last_updated = datetime.utcnow()
             else:
                 inv = Inventory(
                     user_id=current_user.id,
-                    material_id=jm.material_id,
-                    quantity=quantity_in_scu,  # ✅ Utiliser la quantité convertie
-                    unit=jm.unit
+                    material_id=material_id,
+                    quantity=data['quantity'],
+                    unit=data['unit']
                 )
                 db.add(inv)
             
             # Create inventory event
             event = InventoryEvent(
                 user_id=current_user.id,
-                material_id=jm.material_id,
+                material_id=material_id,
                 event_type="refining_completed",
-                quantity_change=quantity_in_scu,  # ✅ Utiliser la quantité convertie
+                quantity_change=data['quantity'],
                 refining_job_id=job.id
             )
             db.add(event)
