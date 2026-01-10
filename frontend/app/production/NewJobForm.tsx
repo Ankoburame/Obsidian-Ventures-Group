@@ -3,7 +3,7 @@
 // ============================================================
 
 import React, { useState, useEffect } from "react";
-import { Plus, Trash2, ChevronDown, ChevronUp, Loader2 } from "lucide-react";
+import { Plus, Trash2, ChevronDown, ChevronUp, Loader2, Mountain } from "lucide-react";
 
 const COLORS = {
   orange: "#d97706",
@@ -244,13 +244,7 @@ export function NewJobForm({ onJobCreated }: NewJobFormProps) {
         }}
       >
         <span style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <span style={{
-            display: 'inline-block',
-            width: '16px',
-            height: '16px',
-            clipPath: 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)',
-            background: isOpen ? COLORS.orange : COLORS.textSecondary
-          }} />
+          <Mountain size={16} style={{ color: isOpen ? COLORS.orange : COLORS.textSecondary }} />
           NEW REFINING JOB
         </span>
         {isOpen ? <ChevronUp size={20} /> : <ChevronDown size={20} />}

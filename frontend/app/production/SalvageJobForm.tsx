@@ -4,7 +4,7 @@
 // ============================================================
 
 import React, { useState, useEffect } from "react";
-import { Wrench, Plus, Trash2, Loader } from "lucide-react";
+import { Recycle, Plus, Trash2, Loader } from "lucide-react";
 
 const COLORS = {
   orange: "#d97706",
@@ -230,7 +230,7 @@ export function SalvageJobForm({ onJobCreated }: SalvageJobFormProps) {
           }} />
           NEW SALVAGE JOB
         </span>
-        <Wrench style={{ width: '20px', height: '20px' }} />
+        <Recycle style={{ width: '20px', height: '20px' }} />
       </button>
 
       {/* FORM */}
@@ -654,7 +654,7 @@ export function SalvageJobForm({ onJobCreated }: SalvageJobFormProps) {
                   </>
                 ) : (
                   <>
-                    <Wrench style={{ width: '16px', height: '16px' }} />
+                    <Recycle style={{ width: '16px', height: '16px' }} />
                     SUBMIT SALVAGE ORDER
                   </>
                 )}
