@@ -89,6 +89,9 @@ export function NewJobForm({ onJobCreated }: NewJobFormProps) {
         const refData = await locRes.json();
         const matData = await matRes.json();
 
+        console.log("🔍 RAW matData from API:", matData);
+        console.log("🔍 matData length:", Array.isArray(matData) ? matData.length : 'not array');
+
         // Protection contre null
         const refineries = Array.isArray(refData) ? refData : [];
         // Liste stricte des 23 matériaux raffinables
@@ -96,6 +99,9 @@ export function NewJobForm({ onJobCreated }: NewJobFormProps) {
         const materials = Array.isArray(matData) 
           ? matData.filter((mat: Material) => refinableMaterialIds.includes(mat.id))
           : [];
+
+        console.log("🔍 Filtered materials count:", materials.length);
+        console.log("🔍 Filtered materials:", materials.map(m => `${m.id}: ${m.name}`));
 
         setRefineries(refineries);
         setMaterials(materials);
