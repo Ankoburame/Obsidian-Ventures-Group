@@ -95,7 +95,10 @@ export function SalvageJobForm({ onJobCreated }: SalvageJobFormProps) {
 
       // Protection contre null
       const refineries = Array.isArray(refData) ? refData : [];
-      const materials = Array.isArray(matData) ? matData.filter((mat: Material) => mat.is_salvage === true) : [];
+      const salvageMaterialIds = [19, 63, 172, 173, 174];
+      const materials = Array.isArray(matData) 
+        ? matData.filter((mat: Material) => salvageMaterialIds.includes(mat.id))
+        : [];
 
       setRefineries(refineries);
       setMaterials(materials);
