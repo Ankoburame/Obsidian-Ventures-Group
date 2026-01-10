@@ -86,8 +86,8 @@ export function SalvageJobForm({ onJobCreated }: SalvageJobFormProps) {
       };
 
       const [refRes, matRes] = await Promise.all([
-        fetch(`${API_URL}/reference/refineries`, { headers }),  // ✅ Nouvel endpoint
-        fetch(`${API_URL}/reference/materials`, { headers })
+        fetch(`${API_URL}/reference/refineries`, { headers }),
+        fetch(`${API_URL}/reference/salvage-materials`, { headers })
       ]);
 
       const refData = await refRes.json();
@@ -95,10 +95,7 @@ export function SalvageJobForm({ onJobCreated }: SalvageJobFormProps) {
 
       // Protection contre null
       const refineries = Array.isArray(refData) ? refData : [];
-      const salvageMaterialIds = [19, 63, 172, 173, 174];
-      const materials = Array.isArray(matData) 
-        ? matData.filter((mat: Material) => salvageMaterialIds.includes(mat.id))
-        : [];
+      const materials = Array.isArray(matData) ? matData : [];
 
       setRefineries(refineries);
       setMaterials(materials);
