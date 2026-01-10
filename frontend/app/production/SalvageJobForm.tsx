@@ -71,10 +71,10 @@ export function SalvageJobForm({ onJobCreated }: SalvageJobFormProps) {
   const [notes, setNotes] = useState<string>("");
 
   useEffect(() => {
-    if (isOpen && refineries.length === 0) {
+    if (isOpen && materials.length === 0) {
       loadData();
     }
-  }, [isOpen]);
+  }, [isOpen, materials.length]);
 
   async function loadData() {
     setLoading(true);
