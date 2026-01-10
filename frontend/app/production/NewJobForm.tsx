@@ -91,7 +91,11 @@ export function NewJobForm({ onJobCreated }: NewJobFormProps) {
 
         // Protection contre null
         const refineries = Array.isArray(refData) ? refData : [];
-        const materials = Array.isArray(matData) ? matData.filter((mat: Material) => mat.is_mineable === true) : [];
+        // Liste stricte des 23 matériaux raffinables
+        const refinableMaterialIds = [1, 5, 11, 13, 15, 20, 22, 33, 39, 44, 47, 58, 60, 73, 75, 77, 95, 98, 115, 117, 175, 179, 181];
+        const materials = Array.isArray(matData) 
+          ? matData.filter((mat: Material) => refinableMaterialIds.includes(mat.id))
+          : [];
 
         setRefineries(refineries);
         setMaterials(materials);
