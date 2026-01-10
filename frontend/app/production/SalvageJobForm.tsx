@@ -71,12 +71,15 @@ export function SalvageJobForm({ onJobCreated }: SalvageJobFormProps) {
   const [notes, setNotes] = useState<string>("");
 
   useEffect(() => {
+    console.log("🔍 SALVAGE useEffect triggered:", { isOpen, materialsLength: materials.length });
     if (isOpen && materials.length === 0) {
+      console.log("✅ Calling loadData for salvage materials");
       loadData();
     }
   }, [isOpen, materials.length]);
 
   async function loadData() {
+    console.log("🚀 SALVAGE loadData started");
     setLoading(true);
     try {
       const token = localStorage.getItem("token");
