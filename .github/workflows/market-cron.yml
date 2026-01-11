@@ -19,11 +19,6 @@ on:
           - refresh
           - snapshot
 
-# Force workflow to run on release/v1.0.0 branch
-# GitHub Actions checks out the branch where the workflow file exists
-branches:
-  - release/v1.0.0
-
 jobs:
   refresh-prices:
     runs-on: ubuntu-latest
