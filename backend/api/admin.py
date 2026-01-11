@@ -2,17 +2,23 @@
 Admin API endpoints.
 Simple admin functions: list users, reset password, delete inventory.
 """
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Header
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from typing import Optional
+import os
 
 from database import get_db
 from core.security import get_current_user, get_password_hash
 from models.user import User
 from models.inventory import Inventory
+from services.uex.uex_service import refresh_all_prices
+from scripts.capture_price_snapshot import capture_snapshot
 
 router = APIRouter()
+
+# Secret token pour les cron jobs (à mettre dans les variables d'env Railway)
+CRON_SECRET = os.getenv("CRON_SECRET", "change-me-in-production")
 
 
 def check_admin(current_user: User):
@@ -230,3 +236,56 @@ async def get_user_inventory(
         })
     
     return result
+
+
+# ============================================================================
+# CRON JOB ENDPOINTS (Protected by secret token)
+# ============================================================================
+
+def verify_cron_secret(x_cron_secret: str = Header(...)):
+    """Verify cron secret token from header."""
+    if x_cron_secret != CRON_SECRET:
+        raise HTTPException(status_code=403, detail="Invalid cron secret")
+    return True
+
+
+@router.post("/cron/refresh-prices")
+async def cron_refresh_prices(
+    _: bool = Depends(verify_cron_secret),
+    db: Session = Depends(get_db)
+):
+    """
+    Refresh all material prices from UEX API.
+    Called by GitHub Actions every 6 hours.
+    Protected by X-Cron-Secret header.
+    """
+    try:
+        stats = refresh_all_prices(db, force=False)
+        return {
+            "success": True,
+            "message": "Prices refreshed successfully",
+            "stats": stats
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to refresh prices: {str(e)}")
+
+
+@router.post("/cron/price-snapshot")
+async def cron_price_snapshot(
+    _: bool = Depends(verify_cron_secret),
+    db: Session = Depends(get_db)
+):
+    """
+    Capture daily price snapshot for historical charts.
+    Called by GitHub Actions daily at 2 AM UTC.
+    Protected by X-Cron-Secret header.
+    """
+    try:
+        stats = capture_snapshot(db, dry_run=False)
+        return {
+            "success": True,
+            "message": "Snapshot captured successfully",
+            "stats": stats
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to capture snapshot: {str(e)}")
