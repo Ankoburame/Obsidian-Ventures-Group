@@ -280,3 +280,37 @@ async def get_price_history(
         }
         for s in snapshots
     ]
+
+
+@router.get("/materials/{material_id}")
+async def get_material_detail(
+    material_id: int,
+    db: Session = Depends(get_db)
+):
+    """
+    Get detailed information for a specific material including price data.
+    """
+    # Get material info
+    material = db.query(Material).filter(Material.id == material_id).first()
+    if not material:
+        raise HTTPException(status_code=404, detail="Material not found")
+    
+    # Get price data
+    price_data = db.query(MarketPrice).filter(
+        MarketPrice.material_id == material_id
+    ).first()
+    
+    return {
+        "id": material.id,
+        "name": material.name,
+        "category": material.category,
+        "unit": material.unit,
+        "is_mineable": material.is_mineable,
+        "is_salvage": material.is_salvage,
+        "is_trade_good": material.is_trade_good,
+        "avg_buy_price": float(price_data.avg_buy_price) if price_data and price_data.avg_buy_price else None,
+        "avg_sell_price": float(price_data.avg_sell_price) if price_data and price_data.avg_sell_price else None,
+        "min_buy_price": float(price_data.min_buy_price) if price_data and price_data.min_buy_price else None,
+        "max_sell_price": float(price_data.max_sell_price) if price_data and price_data.max_sell_price else None,
+        "last_updated": price_data.last_updated.isoformat() if price_data and price_data.last_updated else None
+    }

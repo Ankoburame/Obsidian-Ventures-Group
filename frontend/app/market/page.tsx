@@ -280,16 +280,17 @@ export default function MarketPage() {
 
     async function loadMaterials() {
       try {
-        const res = await fetch(`${API_URL}/reference/market-materials`);
+        // Charger les prix depuis /market/prices (qui contient déjà les infos matériaux + prix)
+        const res = await fetch(`${API_URL}/market/prices?limit=500`);
         const data = await res.json();
 
         const validData = Array.isArray(data) ? data : [];
         
         // Charger l'historique des prix pour chaque matériau
         const materialsWithHistory = await Promise.all(
-          validData.map(async (m: any) => {
+          validData.map(async (priceData: any) => {
             try {
-              const historyRes = await fetch(`${API_URL}/market/price-history/${m.id}?days=30`);
+              const historyRes = await fetch(`${API_URL}/market/price-history/${priceData.material_id}?days=30`);
               const historyData = await historyRes.json();
               
               // Extraire les prix de vente moyens pour le graphique
@@ -305,15 +306,34 @@ export default function MarketPage() {
                 variation = ((last - first) / first) * 100;
               }
               
+              // Mapper les données pour correspondre à l'interface Material
               return {
-                ...m,
+                id: priceData.material_id,
+                name: priceData.material_name,
+                code: priceData.material_name.substring(0, 3).toUpperCase(),
+                category: priceData.category,
+                avg_sell_price: priceData.avg_sell_price,
+                min_buy_price: priceData.min_buy_price,
+                max_sell_price: priceData.max_sell_price,
+                best_buy_location: null,
+                best_sell_location: null,
+                available_at: 0,
                 priceHistory,
                 variation
               };
             } catch {
               // Si l'historique échoue, retourner le matériau sans historique
               return {
-                ...m,
+                id: priceData.material_id,
+                name: priceData.material_name,
+                code: priceData.material_name.substring(0, 3).toUpperCase(),
+                category: priceData.category,
+                avg_sell_price: priceData.avg_sell_price,
+                min_buy_price: priceData.min_buy_price,
+                max_sell_price: priceData.max_sell_price,
+                best_buy_location: null,
+                best_sell_location: null,
+                available_at: 0,
                 priceHistory: [],
                 variation: (Math.random() - 0.5) * 10
               };
