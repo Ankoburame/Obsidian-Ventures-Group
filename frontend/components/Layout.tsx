@@ -1,7 +1,12 @@
 import "./globals.css"
 import { AppShell } from "@/components/layout/AppShell"
-import { NotificationsProvider } from "@/contexts/NotificationsContext"
+import dynamic from 'next/dynamic'
 import type { Metadata } from 'next'
+
+const NotificationsProvider = dynamic(
+  () => import('@/contexts/NotificationsContext').then(mod => ({ default: mod.NotificationsProvider })),
+  { ssr: false }
+)
 
 export const metadata: Metadata = {
   title: "Obsidian Ventures Group | Resource Management",

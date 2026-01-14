@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { SettingsModal } from '@/components/SettingsModal';
 import Image from "next/image";
-import { useNotifications } from '@/contexts/NotificationsContext';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
 
@@ -15,6 +14,17 @@ type TopbarProps = {
   toggleSidebar: () => void;
 };
 
+interface Notification {
+  id: number;
+  type: string;
+  refinery_name: string;
+  refinery_system: string;
+  job_type: string;
+  end_time: string;
+  hours_ready: number;
+  materials_count: number;
+}
+
 export function Topbar({ sidebarOpen, toggleSidebar }: TopbarProps) {
   const router = useRouter();
   const [currentTime, setCurrentTime] = useState<Date | null>(null);
@@ -22,7 +32,10 @@ export function Topbar({ sidebarOpen, toggleSidebar }: TopbarProps) {
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [user, setUser] = useState<any>(null);
-  const { count, notifications } = useNotifications();
+  
+  // Notifications state (direct, sans contexte)
+  const [count, setCount] = useState(0);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
 
   // Password change modal states
   const [showPasswordModal, setShowPasswordModal] = useState(false);
@@ -56,6 +69,37 @@ export function Topbar({ sidebarOpen, toggleSidebar }: TopbarProps) {
     const timer = setInterval(() => {
       setCurrentTime(new Date());
     }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  // Charger les notifications
+  useEffect(() => {
+    async function loadNotifications() {
+      try {
+        const token = localStorage.getItem("token");
+        if (!token) return;
+
+        console.log("🔔 Loading notifications...");
+        const res = await fetch(`${API_URL}/production/notifications`, {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+
+        console.log("🔔 Response status:", res.status);
+        if (res.ok) {
+          const data = await res.json();
+          console.log("🔔 Notifications data:", data);
+          setCount(data.count || 0);
+          setNotifications(data.notifications || []);
+        }
+      } catch (e) {
+        console.error("Error loading notifications:", e);
+      }
+    }
+
+    loadNotifications();
+    const timer = setInterval(loadNotifications, 30000);
     return () => clearInterval(timer);
   }, []);
 

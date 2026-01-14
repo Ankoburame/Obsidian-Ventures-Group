@@ -30,24 +30,35 @@ const NotificationsContext = createContext<NotificationsContextType>({
 });
 
 export function NotificationsProvider({ children }: { children: React.ReactNode }) {
+  const [mounted, setMounted] = useState(false);
   const [count, setCount] = useState(0);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const loadNotifications = async () => {
     try {
       setLoading(true);
       const token = localStorage.getItem("token");
-      if (!token) return;
+      if (!token) {
+        console.log("No token found");
+        return;
+      }
 
+      console.log("Fetching notifications...");
       const res = await fetch(`${API_URL}/production/notifications`, {
         headers: {
           Authorization: `Bearer ${token}`
         }
       });
 
+      console.log("Notifications response:", res.status);
       if (res.ok) {
         const data = await res.json();
+        console.log("Notifications data:", data);
         setCount(data.count || 0);
         setNotifications(data.notifications || []);
       }
@@ -59,10 +70,13 @@ export function NotificationsProvider({ children }: { children: React.ReactNode 
   };
 
   useEffect(() => {
+    if (!mounted) return;
+    
+    console.log("NotificationsContext mounted, starting to load...");
     loadNotifications();
-    const interval = setInterval(loadNotifications, 30000); // Refresh every 30s
+    const interval = setInterval(loadNotifications, 30000);
     return () => clearInterval(interval);
-  }, []);
+  }, [mounted]);
 
   return (
     <NotificationsContext.Provider value={{ count, notifications, loading, refresh: loadNotifications }}>
