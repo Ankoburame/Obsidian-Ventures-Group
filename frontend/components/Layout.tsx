@@ -1,5 +1,6 @@
 import "./globals.css"
 import { AppShell } from "@/components/layout/AppShell"
+import { NotificationsProvider } from "@/contexts/NotificationsContext"
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
@@ -33,7 +34,9 @@ export default function RootLayout({
         <link rel="icon" href="/images/logo/ovg_icon_only.svg" type="image/svg+xml" />
       </head>
       <body>
-        <AppShell>{children}</AppShell>
+        <NotificationsProvider>
+          <AppShell>{children}</AppShell>
+        </NotificationsProvider>
       </body>
     </html>
   )

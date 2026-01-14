@@ -295,6 +295,43 @@ async def collect_job(
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@router.get("/notifications")
+async def get_notifications(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Get user notifications (jobs ready to collect).
+    Returns count and list of ready jobs.
+    """
+    ready_jobs = db.query(RefiningJob).filter(
+        RefiningJob.user_id == current_user.id,
+        RefiningJob.status == "ready"
+    ).order_by(RefiningJob.end_time.desc()).all()
+    
+    notifications = []
+    for job in ready_jobs:
+        # Calculate time since ready
+        time_ready = datetime.utcnow() - job.end_time
+        hours_ready = int(time_ready.total_seconds() / 3600)
+        
+        notifications.append({
+            "id": job.id,
+            "type": "job_ready",
+            "refinery_name": job.refinery.name if job.refinery else "Unknown",
+            "refinery_system": job.refinery.system if job.refinery else "Unknown",
+            "job_type": job.job_type,
+            "end_time": job.end_time.isoformat(),
+            "hours_ready": hours_ready,
+            "materials_count": len(job.materials)
+        })
+    
+    return {
+        "count": len(notifications),
+        "notifications": notifications
+    }
+
+
 # ============================================================================
 # INVENTORY
 # ============================================================================

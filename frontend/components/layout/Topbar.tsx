@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { SettingsModal } from '@/components/SettingsModal';
 import Image from "next/image";
+import { useNotifications } from '@/contexts/NotificationsContext';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
 
@@ -18,8 +19,10 @@ export function Topbar({ sidebarOpen, toggleSidebar }: TopbarProps) {
   const router = useRouter();
   const [currentTime, setCurrentTime] = useState<Date | null>(null);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [user, setUser] = useState<any>(null);
+  const { count, notifications } = useNotifications();
 
   // Password change modal states
   const [showPasswordModal, setShowPasswordModal] = useState(false);
@@ -259,6 +262,7 @@ export function Topbar({ sidebarOpen, toggleSidebar }: TopbarProps) {
           </button>
 
           <button
+            onClick={() => setNotificationsOpen(!notificationsOpen)}
             style={{
               width: "40px",
               height: "40px",
@@ -283,19 +287,91 @@ export function Topbar({ sidebarOpen, toggleSidebar }: TopbarProps) {
             }}
           >
             <Bell style={{ width: "18px", height: "18px" }} />
+            {count > 0 && (
+              <div
+                style={{
+                  position: "absolute",
+                  top: "8px",
+                  right: "8px",
+                  width: "6px",
+                  height: "6px",
+                  background: "#ef4444",
+                  borderRadius: "50%",
+                  boxShadow: "0 0 8px #ef4444",
+                }}
+              />
+            )}
+          </button>
+
+          {/* Notifications Dropdown */}
+          {notificationsOpen && (
             <div
               style={{
                 position: "absolute",
-                top: "8px",
-                right: "8px",
-                width: "6px",
-                height: "6px",
-                background: "#ef4444",
-                borderRadius: "50%",
-                boxShadow: "0 0 8px #ef4444",
+                top: "60px",
+                right: "80px",
+                width: "360px",
+                maxHeight: "480px",
+                background: "#18181b",
+                border: "1px solid rgba(6, 182, 212, 0.3)",
+                borderRadius: "8px",
+                boxShadow: "0 8px 32px rgba(0, 0, 0, 0.5)",
+                zIndex: 1000,
+                overflow: "hidden"
               }}
-            />
-          </button>
+            >
+              <div style={{
+                padding: "16px",
+                borderBottom: "1px solid rgba(82, 82, 91, 0.3)",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center"
+              }}>
+                <span style={{ fontSize: "14px", fontWeight: 600, color: "#e2e8f0", textTransform: "uppercase", letterSpacing: "1px" }}>
+                  Notifications
+                </span>
+                <span style={{ fontSize: "12px", color: "#06b6d4" }}>
+                  {count} {count === 1 ? 'job ready' : 'jobs ready'}
+                </span>
+              </div>
+
+              <div style={{ maxHeight: "400px", overflowY: "auto" }}>
+                {notifications.length === 0 ? (
+                  <div style={{ padding: "32px", textAlign: "center", color: "#71717a" }}>
+                    No notifications
+                  </div>
+                ) : (
+                  notifications.map((notif) => (
+                    <div
+                      key={notif.id}
+                      onClick={() => {
+                        router.push('/production');
+                        setNotificationsOpen(false);
+                      }}
+                      style={{
+                        padding: "16px",
+                        borderBottom: "1px solid rgba(82, 82, 91, 0.2)",
+                        cursor: "pointer",
+                        transition: "background 0.2s",
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.background = "rgba(6, 182, 212, 0.1)"}
+                      onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
+                    >
+                      <div style={{ fontSize: "13px", fontWeight: 600, color: "#e2e8f0", marginBottom: "4px" }}>
+                        🟢 {notif.job_type === 'mining' ? 'Refining' : 'Salvage'} Job Ready
+                      </div>
+                      <div style={{ fontSize: "12px", color: "#94a3b8", marginBottom: "4px" }}>
+                        {notif.refinery_name} • {notif.refinery_system}
+                      </div>
+                      <div style={{ fontSize: "11px", color: "#71717a" }}>
+                        Ready {notif.hours_ready}h ago • {notif.materials_count} materials
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          )}
 
           <div style={{ width: "1px", height: "24px", background: "rgba(82, 82, 91, 0.3)" }} />
 
