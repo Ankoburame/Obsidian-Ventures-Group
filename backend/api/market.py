@@ -53,9 +53,11 @@ async def list_market_prices(
     db: Session = Depends(get_db)
 ):
     """
-    Get market prices for materials.
+    Get market prices for materials (excludes Ore and Raw Material categories).
     """
-    query = db.query(MarketPrice).join(Material)
+    query = db.query(MarketPrice).join(Material).filter(
+        Material.category.notin_(['Ore', 'Raw Material'])
+    )
     
     if category:
         query = query.filter(Material.category == category)
@@ -251,4 +253,3 @@ async def get_history_stats(db: Session = Depends(get_db)):
         "today_snapshots": today_snapshots,
         "history_days": history_days,
     }
-
