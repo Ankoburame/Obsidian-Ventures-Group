@@ -137,3 +137,25 @@ async def list_salvage_materials(db: Session = Depends(get_db)):
         }
         for m in materials
     ]
+
+
+@router.get("/market-materials")
+async def list_market_materials(db: Session = Depends(get_db)):
+    """Get all materials for market (excludes Ore and Raw Material categories)."""
+    materials = db.query(Material).filter(
+        Material.category.notin_(['Ore', 'Raw Material'])
+    ).order_by(Material.name).all()
+    
+    return [
+        {
+            "id": m.id,
+            "name": m.name,
+            "category": m.category,
+            "unit": m.unit,
+            "is_mineable": m.is_mineable,
+            "is_salvage": m.is_salvage,
+            "is_trade_good": m.is_trade_good,
+            "base_value": float(m.base_value) if m.base_value else None
+        }
+        for m in materials
+    ]
