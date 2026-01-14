@@ -18,6 +18,7 @@ interface Material {
   best_sell_location: Location | null;
   available_at: number;
   variation: number;
+  priceHistory?: number[]; // Historique réel des prix (30 derniers jours)
 }
 
 interface Location {
@@ -26,6 +27,12 @@ interface Location {
   code: string;
   system: string;
   full_path: string;
+}
+
+interface PriceHistoryPoint {
+  date: string;
+  avg_buy_price: number | null;
+  avg_sell_price: number | null;
 }
 
 // Générer un acronyme depuis un nom de matériau
@@ -37,16 +44,21 @@ function generateAcronym(name: string): string {
   return words.map(w => w[0]).join("").substring(0, 4).toUpperCase();
 }
 
-// Générer des données de variation simulées pour le graphique
-function generateMiniChartData(variation: number): number[] {
-  const baseValue = 100;
+// Obtenir les données du graphique (vraies si disponibles, sinon fallback)
+function getMiniChartData(material: Material): number[] {
+  if (material.priceHistory && material.priceHistory.length > 0) {
+    return material.priceHistory;
+  }
+  
+  // Fallback : générer des données simulées si pas d'historique
+  const baseValue = material.avg_sell_price || 100;
   const points = 20;
   const data: number[] = [];
 
   let current = baseValue;
   for (let i = 0; i < points; i++) {
-    const noise = (Math.random() - 0.5) * 5;
-    const trend = (variation / points) * i;
+    const noise = (Math.random() - 0.5) * (baseValue * 0.05);
+    const trend = (material.variation / points) * i;
     current = baseValue + trend + noise;
     data.push(current);
   }
@@ -114,7 +126,7 @@ function MaterialCell({ material, isSelected, onClick }: {
 }) {
   const [showTooltip, setShowTooltip] = useState(false);
   const variation = material.variation;
-  const chartData = generateMiniChartData(variation);
+  const chartData = getMiniChartData(material);
 
   let bgColor = "rgba(0, 0, 0, 0.4)";
   let borderColor = "rgba(82, 82, 91, 0.3)";
@@ -268,21 +280,53 @@ export default function MarketPage() {
 
     async function loadMaterials() {
       try {
-        const res = await fetch(`${API_URL}/reference/materials`);
+        const res = await fetch(`${API_URL}/reference/market-materials`);
         const data = await res.json();
 
         const validData = Array.isArray(data) ? data : [];
-        const materialsWithVariation = validData.map((m: any) => ({
-          ...m,
-          variation: (Math.random() - 0.5) * 10
-        }));
+        
+        // Charger l'historique des prix pour chaque matériau
+        const materialsWithHistory = await Promise.all(
+          validData.map(async (m: any) => {
+            try {
+              const historyRes = await fetch(`${API_URL}/market/price-history/${m.id}?days=30`);
+              const historyData = await historyRes.json();
+              
+              // Extraire les prix de vente moyens pour le graphique
+              const priceHistory = Array.isArray(historyData) 
+                ? historyData.map((h: PriceHistoryPoint) => h.avg_sell_price || 0).filter(p => p > 0)
+                : [];
+              
+              // Calculer la variation réelle si on a de l'historique
+              let variation = (Math.random() - 0.5) * 10; // Fallback
+              if (priceHistory.length >= 2) {
+                const first = priceHistory[0];
+                const last = priceHistory[priceHistory.length - 1];
+                variation = ((last - first) / first) * 100;
+              }
+              
+              return {
+                ...m,
+                priceHistory,
+                variation
+              };
+            } catch {
+              // Si l'historique échoue, retourner le matériau sans historique
+              return {
+                ...m,
+                priceHistory: [],
+                variation: (Math.random() - 0.5) * 10
+              };
+            }
+          })
+        );
 
-        setMaterials(materialsWithVariation);
-        setFilteredMaterials(materialsWithVariation);
+        setMaterials(materialsWithHistory);
+        setFilteredMaterials(materialsWithHistory);
 
-        if (!selectedMaterial && materialsWithVariation.length > 0) {
-          const randomIndex = Math.floor(Math.random() * materialsWithVariation.length);
-          setSelectedMaterial(materialsWithVariation[randomIndex]);
+        if (!selectedMaterial && materialsWithHistory.length > 0) {
+          const randomIndex = Math.floor(Math.random() * materialsWithHistory.length);
+          setSelectedMaterial(materialsWithHistory[randomIndex]);
         }
 
         setLoading(false);
@@ -349,7 +393,7 @@ export default function MarketPage() {
     );
   }
 
-  const largeChartData = selectedMaterial ? generateMiniChartData(selectedMaterial.variation) : [];
+  const largeChartData = selectedMaterial ? getMiniChartData(selectedMaterial) : [];
   const categories = ["all", ...Array.from(new Set(materials.map(m => m.category)))];
 
   return (

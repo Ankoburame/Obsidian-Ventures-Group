@@ -253,3 +253,30 @@ async def get_history_stats(db: Session = Depends(get_db)):
         "today_snapshots": today_snapshots,
         "history_days": history_days,
     }
+
+
+@router.get("/price-history/{material_id}")
+async def get_price_history(
+    material_id: int,
+    days: int = Query(30, ge=1, le=90),
+    db: Session = Depends(get_db)
+):
+    """
+    Get price history for a specific material.
+    Returns daily snapshots for the last N days (default 30, max 90).
+    """
+    cutoff_date = datetime.now() - timedelta(days=days)
+    
+    snapshots = db.query(PriceSnapshot).filter(
+        PriceSnapshot.material_id == material_id,
+        PriceSnapshot.snapshot_date >= cutoff_date.date()
+    ).order_by(PriceSnapshot.snapshot_date.asc()).all()
+    
+    return [
+        {
+            "date": s.snapshot_date.isoformat(),
+            "avg_buy_price": float(s.avg_buy_price) if s.avg_buy_price else None,
+            "avg_sell_price": float(s.avg_sell_price) if s.avg_sell_price else None
+        }
+        for s in snapshots
+    ]
