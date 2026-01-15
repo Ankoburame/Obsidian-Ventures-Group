@@ -66,7 +66,7 @@ def health_check():
 # INCLUDE ROUTERS
 # ============================================================================
 
-from api import auth, production, market, reference, dashboard, cargo, admin
+from api import auth, production, market, reference, dashboard, cargo, admin, stats
 
 app.include_router(auth.router, prefix="/auth", tags=["Authentication"])
 app.include_router(production.router, prefix="/production", tags=["Production"])
@@ -75,7 +75,7 @@ app.include_router(reference.router, prefix="/reference", tags=["Reference Data"
 app.include_router(dashboard.router, prefix="/dashboard", tags=["Dashboard"])
 app.include_router(cargo.router, prefix="/cargo", tags=["Cargo"])
 app.include_router(admin.router, prefix="/admin", tags=["Admin"])
-app.include_router(reference.router, prefix="/api/reference", tags=["reference"])
+app.include_router(stats.router, prefix="/stats", tags=["Stats & History"])
 
 
 if __name__ == "__main__":

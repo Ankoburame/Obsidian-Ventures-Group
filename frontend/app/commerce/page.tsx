@@ -785,81 +785,659 @@ function TradeCalculator() {
 // COMPOSANT: Trade Stats (SIMPLIFIÉ)
 // ============================================================
 
+interface CargoStats {
+  total_runs: number;
+  total_profit: number;
+  total_revenue: number;
+  total_investment: number;
+  avg_profit_per_run: number;
+  profit_margin_pct: number;
+  best_route: {
+    route: string;
+    total_profit: number;
+    runs_count: number;
+  } | null;
+  top_commodities: Array<{
+    name: string;
+    total_profit: number;
+    total_quantity: number;
+    runs_count: number;
+  }>;
+  time_series: Array<{
+    date: string;
+    profit: number;
+    revenue: number;
+  }>;
+}
+
+// ============================================================
+// Interface pour CargoStats (à ajouter AVANT la fonction TradeStats, vers ligne 785)
+// ============================================================
+
+interface CargoStats {
+  total_runs: number;
+  total_profit: number;
+  total_revenue: number;
+  total_investment: number;
+  avg_profit_per_run: number;
+  profit_margin_pct: number;
+  best_route: {
+    route: string;
+    total_profit: number;
+    runs_count: number;
+  } | null;
+  top_commodities: Array<{
+    name: string;
+    total_profit: number;
+    total_quantity: number;
+    runs_count: number;
+  }>;
+  time_series: Array<{
+    date: string;
+    profit: number;
+    revenue: number;
+  }>;
+}
+
+// ============================================================
+// Fonction TradeStats complète (REMPLACE la fonction existante ligne 788-865)
+// ============================================================
+
 function TradeStats() {
+  const [stats, setStats] = useState<CargoStats | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    setTimeout(() => setLoading(false), 500);
+    async function loadStats() {
+      try {
+        const token = localStorage.getItem("token");
+        if (!token) return;
+
+        const res = await fetch(`${API_URL}/cargo/stats`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          setStats(data);
+        }
+      } catch (e) {
+        console.error("Error loading cargo stats:", e);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadStats();
   }, []);
+
+  const formatCurrencyLocal = (value: number) => {
+    if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(2)}M`;
+    if (value >= 1_000) return `${(value / 1_000).toFixed(1)}K`;
+    return value.toFixed(0);
+  };
 
   if (loading) {
     return (
+      <div style={{ padding: '48px', textAlign: 'center' }}>
+        <div style={{ color: COLORS.textSecondary, fontFamily: 'monospace', letterSpacing: '2px' }}>
+          LOADING STATISTICS...
+        </div>
+      </div>
+    );
+  }
+
+  if (!stats || stats.total_runs === 0) {
+    return (
       <div style={{
-        padding: '80px',
+        padding: '64px',
         textAlign: 'center',
-        background: `${COLORS.bgMedium}80`,
-        border: `1px solid ${COLORS.cyan}40`,
+        background: `${COLORS.cyan}05`,
+        border: `2px dashed ${COLORS.cyan}40`,
         borderRadius: '4px'
       }}>
-        <div style={{
-          width: '48px',
-          height: '48px',
-          border: `3px solid ${COLORS.cyan}40`,
-          borderTopColor: COLORS.cyan,
-          borderRadius: '50%',
-          margin: '0 auto 20px',
-          animation: 'spin 1s linear infinite'
+        <BarChart3 style={{
+          width: '64px',
+          height: '64px',
+          color: COLORS.cyan,
+          margin: '0 auto 24px',
+          opacity: 0.6
         }} />
         <div style={{
+          fontSize: '20px',
+          fontWeight: 700,
           color: COLORS.cyan,
-          fontSize: '12px',
           letterSpacing: '2px',
+          textTransform: 'uppercase',
           fontFamily: 'monospace',
-          textTransform: 'uppercase'
+          marginBottom: '12px'
         }}>
-          LOADING TRADE STATS...
+          NO COMPLETED RUNS YET
+        </div>
+        <div style={{
+          fontSize: '13px',
+          color: COLORS.textSecondary,
+          letterSpacing: '1px',
+          fontFamily: 'monospace'
+        }}>
+          Complete some cargo runs to see statistics
         </div>
       </div>
     );
   }
 
   return (
-    <div style={{
-      padding: '60px',
-      textAlign: 'center',
-      background: `${COLORS.cyan}05`,
-      border: `2px dashed ${COLORS.cyan}40`,
-      borderRadius: '4px'
-    }}>
-      <BarChart3 style={{
-        width: '64px',
-        height: '64px',
-        color: COLORS.cyan,
-        margin: '0 auto 24px',
-        opacity: 0.6
-      }} />
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+      {/* Stats Cards */}
       <div style={{
-        fontSize: '20px',
-        fontWeight: 700,
-        color: COLORS.cyan,
-        letterSpacing: '2px',
-        textTransform: 'uppercase',
-        fontFamily: 'monospace',
-        marginBottom: '12px'
+        display: 'grid',
+        gridTemplateColumns: 'repeat(4, 1fr)',
+        gap: '24px'
       }}>
-        TRADE STATISTICS
+        {/* Total Runs */}
+        <div style={{
+          background: COLORS.bgMedium,
+          border: `1px solid ${COLORS.cyan}30`,
+          borderRadius: '8px',
+          padding: '24px',
+          position: 'relative',
+          overflow: 'hidden'
+        }}>
+          <div style={{
+            position: 'absolute',
+            top: '-20px',
+            right: '-20px',
+            width: '80px',
+            height: '80px',
+            background: `radial-gradient(circle, ${COLORS.cyan}15 0%, transparent 70%)`,
+            pointerEvents: 'none'
+          }} />
+          <div style={{
+            fontSize: '11px',
+            color: COLORS.textSecondary,
+            letterSpacing: '2px',
+            textTransform: 'uppercase',
+            marginBottom: '12px',
+            fontFamily: 'monospace'
+          }}>
+            TOTAL RUNS
+          </div>
+          <div style={{
+            fontSize: '36px',
+            fontWeight: 700,
+            color: COLORS.cyan,
+            fontFamily: 'monospace',
+            marginBottom: '8px'
+          }}>
+            {stats.total_runs}
+          </div>
+          <div style={{
+            fontSize: '12px',
+            color: COLORS.textTertiary,
+            fontFamily: 'monospace'
+          }}>
+            COMPLETED
+          </div>
+        </div>
+
+        {/* Total Profit */}
+        <div style={{
+          background: COLORS.bgMedium,
+          border: `1px solid ${COLORS.profit}30`,
+          borderRadius: '8px',
+          padding: '24px',
+          position: 'relative',
+          overflow: 'hidden'
+        }}>
+          <div style={{
+            position: 'absolute',
+            top: '-20px',
+            right: '-20px',
+            width: '80px',
+            height: '80px',
+            background: `radial-gradient(circle, ${COLORS.profit}15 0%, transparent 70%)`,
+            pointerEvents: 'none'
+          }} />
+          <div style={{
+            fontSize: '11px',
+            color: COLORS.textSecondary,
+            letterSpacing: '2px',
+            textTransform: 'uppercase',
+            marginBottom: '12px',
+            fontFamily: 'monospace'
+          }}>
+            TOTAL PROFIT
+          </div>
+          <div style={{
+            fontSize: '36px',
+            fontWeight: 700,
+            color: COLORS.profit,
+            fontFamily: 'monospace',
+            marginBottom: '8px'
+          }}>
+            {formatCurrencyLocal(stats.total_profit)}
+          </div>
+          <div style={{
+            fontSize: '12px',
+            color: COLORS.textTertiary,
+            fontFamily: 'monospace'
+          }}>
+            aUEC
+          </div>
+        </div>
+
+        {/* Average Profit */}
+        <div style={{
+          background: COLORS.bgMedium,
+          border: `1px solid ${COLORS.cyan}30`,
+          borderRadius: '8px',
+          padding: '24px',
+          position: 'relative',
+          overflow: 'hidden'
+        }}>
+          <div style={{
+            position: 'absolute',
+            top: '-20px',
+            right: '-20px',
+            width: '80px',
+            height: '80px',
+            background: `radial-gradient(circle, ${COLORS.cyan}15 0%, transparent 70%)`,
+            pointerEvents: 'none'
+          }} />
+          <div style={{
+            fontSize: '11px',
+            color: COLORS.textSecondary,
+            letterSpacing: '2px',
+            textTransform: 'uppercase',
+            marginBottom: '12px',
+            fontFamily: 'monospace'
+          }}>
+            AVG PROFIT/RUN
+          </div>
+          <div style={{
+            fontSize: '36px',
+            fontWeight: 700,
+            color: COLORS.cyan,
+            fontFamily: 'monospace',
+            marginBottom: '8px'
+          }}>
+            {formatCurrencyLocal(stats.avg_profit_per_run)}
+          </div>
+          <div style={{
+            fontSize: '12px',
+            color: COLORS.textTertiary,
+            fontFamily: 'monospace'
+          }}>
+            aUEC
+          </div>
+        </div>
+
+        {/* Profit Margin */}
+        <div style={{
+          background: COLORS.bgMedium,
+          border: `1px solid ${COLORS.profit}30`,
+          borderRadius: '8px',
+          padding: '24px',
+          position: 'relative',
+          overflow: 'hidden'
+        }}>
+          <div style={{
+            position: 'absolute',
+            top: '-20px',
+            right: '-20px',
+            width: '80px',
+            height: '80px',
+            background: `radial-gradient(circle, ${COLORS.profit}15 0%, transparent 70%)`,
+            pointerEvents: 'none'
+          }} />
+          <div style={{
+            fontSize: '11px',
+            color: COLORS.textSecondary,
+            letterSpacing: '2px',
+            textTransform: 'uppercase',
+            marginBottom: '12px',
+            fontFamily: 'monospace'
+          }}>
+            PROFIT MARGIN
+          </div>
+          <div style={{
+            fontSize: '36px',
+            fontWeight: 700,
+            color: COLORS.profit,
+            fontFamily: 'monospace',
+            marginBottom: '8px'
+          }}>
+            {stats.profit_margin_pct.toFixed(1)}%
+          </div>
+          <div style={{
+            fontSize: '12px',
+            color: COLORS.textTertiary,
+            fontFamily: 'monospace'
+          }}>
+            MARGIN
+          </div>
+        </div>
       </div>
+
+      {/* Best Route & Top Commodities */}
       <div style={{
-        fontSize: '13px',
-        color: COLORS.textSecondary,
-        letterSpacing: '1px',
-        fontFamily: 'monospace',
-        lineHeight: 1.6
+        display: 'grid',
+        gridTemplateColumns: '1fr 1fr',
+        gap: '24px'
       }}>
-        // MODULE COMING SOON<br />
-        View top commodities, best routes, profit graphs<br />
-        Full analytics dashboard in development
+        {/* Best Route */}
+        {stats.best_route && (
+          <div style={{
+            background: COLORS.bgMedium,
+            border: `1px solid ${COLORS.cyan}30`,
+            borderRadius: '8px',
+            padding: '24px'
+          }}>
+            <div style={{
+              fontSize: '13px',
+              color: COLORS.cyan,
+              letterSpacing: '2px',
+              textTransform: 'uppercase',
+              marginBottom: '16px',
+              fontFamily: 'monospace',
+              fontWeight: 600
+            }}>
+              🏆 BEST ROUTE
+            </div>
+            <div style={{
+              fontSize: '16px',
+              color: COLORS.textPrimary,
+              fontFamily: 'monospace',
+              marginBottom: '12px',
+              fontWeight: 600
+            }}>
+              {stats.best_route.route}
+            </div>
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              fontSize: '12px',
+              color: COLORS.textSecondary,
+              fontFamily: 'monospace'
+            }}>
+              <span>Total Profit: {formatCurrencyLocal(stats.best_route.total_profit)} aUEC</span>
+              <span>{stats.best_route.runs_count} runs</span>
+            </div>
+          </div>
+        )}
+
+        {/* Top Commodities */}
+        <div style={{
+          background: COLORS.bgMedium,
+          border: `1px solid ${COLORS.cyan}30`,
+          borderRadius: '8px',
+          padding: '24px'
+        }}>
+          <div style={{
+            fontSize: '13px',
+            color: COLORS.cyan,
+            letterSpacing: '2px',
+            textTransform: 'uppercase',
+            marginBottom: '16px',
+            fontFamily: 'monospace',
+            fontWeight: 600
+          }}>
+            📦 TOP 5 COMMODITIES
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            {stats.top_commodities.slice(0, 5).map((commodity: any, index: number) => (
+              <div
+                key={commodity.name}
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  padding: '8px',
+                  background: `${COLORS.cyan}05`,
+                  borderRadius: '4px'
+                }}
+              >
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px',
+                  flex: 1
+                }}>
+                  <span style={{
+                    fontSize: '14px',
+                    fontWeight: 700,
+                    color: COLORS.cyan,
+                    fontFamily: 'monospace',
+                    minWidth: '20px'
+                  }}>
+                    #{index + 1}
+                  </span>
+                  <span style={{
+                    fontSize: '13px',
+                    color: COLORS.textPrimary,
+                    fontFamily: 'monospace',
+                    flex: 1
+                  }}>
+                    {commodity.name}
+                  </span>
+                </div>
+                <div style={{
+                  fontSize: '13px',
+                  fontWeight: 600,
+                  color: COLORS.profit,
+                  fontFamily: 'monospace'
+                }}>
+                  {formatCurrencyLocal(commodity.total_profit)}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
+
+      {/* TDD-STYLE HOLOGRAPHIC CHART */}
+      {stats.time_series && stats.time_series.length > 0 && (
+        <div style={{
+          background: COLORS.bgMedium,
+          border: `1px solid ${COLORS.cyan}30`,
+          borderRadius: '8px',
+          padding: '32px',
+          perspective: '1000px',
+          position: 'relative',
+          overflow: 'hidden'
+        }}>
+          {/* Holographic glow effect */}
+          <div style={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            width: '120%',
+            height: '120%',
+            background: `radial-gradient(ellipse at center, ${COLORS.cyan}08 0%, transparent 70%)`,
+            transform: 'translate(-50%, -50%)',
+            pointerEvents: 'none',
+            animation: 'pulse 4s ease-in-out infinite'
+          }} />
+
+          <div style={{
+            fontSize: '13px',
+            color: COLORS.cyan,
+            letterSpacing: '2px',
+            textTransform: 'uppercase',
+            marginBottom: '32px',
+            fontFamily: 'monospace',
+            fontWeight: 600,
+            textAlign: 'center',
+            textShadow: `0 0 10px ${COLORS.cyan}80`
+          }}>
+            📈 PROFIT EVOLUTION // TDD DISPLAY
+          </div>
+
+          {/* TDD Container with perspective */}
+          <div style={{
+            transform: 'rotateX(12deg)',
+            transformStyle: 'preserve-3d',
+            position: 'relative'
+          }}>
+            {/* Holographic grid background */}
+            <div style={{
+              position: 'absolute',
+              inset: 0,
+              backgroundImage: `
+                linear-gradient(${COLORS.cyan}15 1px, transparent 1px),
+                linear-gradient(90deg, ${COLORS.cyan}15 1px, transparent 1px)
+              `,
+              backgroundSize: '40px 40px',
+              opacity: 0.3,
+              pointerEvents: 'none'
+            }} />
+
+            {/* Y-axis labels */}
+            <div style={{
+              position: 'absolute',
+              left: '-60px',
+              top: 0,
+              height: '100%',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between',
+              paddingTop: '10px',
+              paddingBottom: '40px'
+            }}>
+              {[...Array(5)].map((_, i) => {
+                const maxProfit = Math.max(...stats.time_series.map((p: any) => p.profit));
+                const value = maxProfit * (1 - i * 0.25);
+                return (
+                  <div
+                    key={i}
+                    style={{
+                      fontSize: '10px',
+                      color: COLORS.cyan,
+                      fontFamily: 'monospace',
+                      textAlign: 'right',
+                      opacity: 0.7
+                    }}
+                  >
+                    {formatCurrencyLocal(value)}
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Chart container */}
+            <div style={{
+              display: 'flex',
+              alignItems: 'flex-end',
+              gap: '3px',
+              height: '280px',
+              padding: '20px 10px 40px',
+              position: 'relative',
+              background: `linear-gradient(180deg, ${COLORS.cyan}03 0%, transparent 100%)`,
+              border: `1px solid ${COLORS.cyan}20`,
+              borderRadius: '4px'
+            }}>
+              {/* Horizontal grid lines */}
+              {[...Array(5)].map((_, i) => (
+                <div
+                  key={i}
+                  style={{
+                    position: 'absolute',
+                    left: 0,
+                    right: 0,
+                    top: `${i * 25}%`,
+                    height: '1px',
+                    background: `${COLORS.cyan}20`,
+                    pointerEvents: 'none'
+                  }}
+                />
+              ))}
+
+              {/* Profit bars */}
+              {stats.time_series.map((point: any, index: number) => {
+                const maxProfit = Math.max(...stats.time_series.map((p: any) => p.profit));
+                const height = Math.max((point.profit / maxProfit) * 100, 2);
+                const isPositive = point.profit > 0;
+
+                return (
+                  <div
+                    key={index}
+                    style={{
+                      flex: 1,
+                      height: `${height}%`,
+                      background: isPositive 
+                        ? `linear-gradient(180deg, ${COLORS.profit} 0%, ${COLORS.profitLight}80 50%, ${COLORS.profit}40 100%)`
+                        : `linear-gradient(180deg, ${COLORS.loss} 0%, ${COLORS.lossLight}80 50%, ${COLORS.loss}40 100%)`,
+                      borderRadius: '2px 2px 0 0',
+                      position: 'relative',
+                      cursor: 'pointer',
+                      transition: 'all 0.3s ease',
+                      boxShadow: `0 0 10px ${isPositive ? COLORS.profit : COLORS.loss}40`,
+                      border: `1px solid ${isPositive ? COLORS.profit : COLORS.loss}60`,
+                      borderBottom: 'none'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.filter = 'brightness(1.3)';
+                      e.currentTarget.style.boxShadow = `0 0 20px ${isPositive ? COLORS.profit : COLORS.loss}80`;
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.filter = 'brightness(1)';
+                      e.currentTarget.style.boxShadow = `0 0 10px ${isPositive ? COLORS.profit : COLORS.loss}40`;
+                    }}
+                    title={`${new Date(point.date).toLocaleDateString()}: ${formatCurrencyLocal(point.profit)} aUEC`}
+                  >
+                    {/* Glow effect on top of bar */}
+                    <div style={{
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      height: '4px',
+                      background: isPositive ? COLORS.profitLight : COLORS.lossLight,
+                      boxShadow: `0 0 8px ${isPositive ? COLORS.profitLight : COLORS.lossLight}`,
+                      borderRadius: '2px 2px 0 0'
+                    }} />
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* X-axis info */}
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              marginTop: '12px',
+              padding: '0 10px',
+              fontSize: '10px',
+              color: COLORS.cyan,
+              fontFamily: 'monospace',
+              opacity: 0.7
+            }}>
+              <span>
+                {new Date(stats.time_series[0].date).toLocaleDateString()}
+              </span>
+              <span>
+                Last {stats.time_series.length} runs
+              </span>
+              <span>
+                {new Date(stats.time_series[stats.time_series.length - 1].date).toLocaleDateString()}
+              </span>
+            </div>
+          </div>
+
+          {/* Holographic scan line effect */}
+          <div style={{
+            position: 'absolute',
+            left: 0,
+            right: 0,
+            height: '2px',
+            background: `linear-gradient(90deg, transparent, ${COLORS.cyan}, transparent)`,
+            boxShadow: `0 0 10px ${COLORS.cyan}`,
+            animation: 'scanVertical 6s linear infinite',
+            opacity: 0.5,
+            pointerEvents: 'none'
+          }} />
+        </div>
+      )}
     </div>
   );
 }

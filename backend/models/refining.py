@@ -1,7 +1,7 @@
 """
 Refining job models for production tracking.
 """
-from sqlalchemy import Column, Integer, String, Numeric, DateTime, ForeignKey, Text, CheckConstraint
+from sqlalchemy import Column, Integer, String, Numeric, DateTime, ForeignKey, Text, CheckConstraint, JSON
 from sqlalchemy.orm import relationship
 from datetime import datetime, timedelta
 
@@ -26,6 +26,7 @@ class RefiningJob(Base):
     end_time = Column(DateTime, index=True)
     collected_at = Column(DateTime)
     
+    tags = Column(JSON, default=list)
     notes = Column(Text)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

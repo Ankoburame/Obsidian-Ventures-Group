@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Numeric, DateTime, ForeignKey, Text
+from sqlalchemy import Column, Integer, String, Numeric, DateTime, ForeignKey, Text, JSON
 from sqlalchemy.orm import relationship
 from datetime import datetime
 
@@ -21,6 +21,7 @@ class CargoRun(Base):
     total_revenue = Column(Numeric(15, 2), nullable=False)
     profit = Column(Numeric(15, 2), nullable=False)
     status = Column(String(50), default="active")
+    tags = Column(JSON, default=list)
     notes = Column(Text, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     delivered_at = Column(DateTime, nullable=True)
