@@ -20,7 +20,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import func
 
 from database import SessionLocal
-from models.market import MarketPrice, PriceSnapshot
+from models.market import MarketPrice, MarketPriceHistory
 from models.material import Material
 
 
@@ -52,9 +52,9 @@ def capture_snapshot(db: Session, dry_run: bool = False) -> Dict[str, int]:
     for price in current_prices:
         try:
             # Vérifier si on a déjà un snapshot pour aujourd'hui
-            existing_snapshot = db.query(PriceSnapshot).filter(
-                PriceSnapshot.material_id == price.material_id,
-                PriceSnapshot.snapshot_date == today
+            existing_snapshot = db.query(MarketPriceHistory).filter(
+                MarketPriceHistory.material_id == price.material_id,
+                MarketPriceHistory.date == today
             ).first()
             
             if existing_snapshot:
@@ -77,11 +77,11 @@ def capture_snapshot(db: Session, dry_run: bool = False) -> Dict[str, int]:
                 stats["captured"] += 1
             else:
                 # Créer un nouveau snapshot
-                snapshot = PriceSnapshot(
+                snapshot = MarketPriceHistory(
                     material_id=price.material_id,
                     avg_buy_price=price.avg_buy_price,
                     avg_sell_price=price.avg_sell_price,
-                    snapshot_date=today,
+                    date=today,
                 )
                 db.add(snapshot)
                 stats["captured"] += 1
@@ -115,27 +115,27 @@ def get_stats(db: Session) -> Dict:
         Statistiques d'historique
     """
     # Total d'entrées
-    total_entries = db.query(func.count(PriceSnapshot.id)).scalar()
+    total_entries = db.query(func.count(MarketPriceHistory.id)).scalar()
     
     # Nombre de matériaux avec historique
     materials_with_history = db.query(
-        func.count(func.distinct(PriceSnapshot.material_id))
+        func.count(func.distinct(MarketPriceHistory.material_id))
     ).scalar()
     
     # Date du premier snapshot
     first_snapshot = db.query(
-        func.min(PriceSnapshot.snapshot_date)
+        func.min(MarketPriceHistory.date)
     ).scalar()
     
     # Date du dernier snapshot
     last_snapshot = db.query(
-        func.max(PriceSnapshot.snapshot_date)
+        func.max(MarketPriceHistory.date)
     ).scalar()
     
     # Nombre de snapshots aujourd'hui
     today = date.today()
-    today_snapshots = db.query(func.count(PriceSnapshot.id)).filter(
-        PriceSnapshot.snapshot_date == today
+    today_snapshots = db.query(func.count(MarketPriceHistory.id)).filter(
+        MarketPriceHistory.date == today
     ).scalar()
     
     # Nombre de jours d'historique
@@ -168,8 +168,8 @@ def clean_old_history(db: Session, days: int = 90, dry_run: bool = False) -> int
     """
     cutoff_date = date.today() - timedelta(days=days)
     
-    old_entries = db.query(PriceSnapshot).filter(
-        PriceSnapshot.snapshot_date < cutoff_date
+    old_entries = db.query(MarketPriceHistory).filter(
+        MarketPriceHistory.date < cutoff_date
     )
     
     count = old_entries.count()

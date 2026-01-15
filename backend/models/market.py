@@ -68,3 +68,33 @@ class PriceSnapshot(Base):
     
     def __repr__(self):
         return f"<PriceSnapshot(material_id={self.material_id}, date={self.snapshot_date})>"
+
+class MarketPriceHistory(Base):
+    """Historical market prices for charting."""
+    
+    __tablename__ = "market_price_history"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    material_id = Column(Integer, ForeignKey("materials.id", ondelete="CASCADE"), nullable=False, index=True)
+    date = Column(Date, nullable=False, index=True)
+    
+    avg_buy_price = Column(Numeric(12, 2))
+    avg_sell_price = Column(Numeric(12, 2))
+    min_buy_price = Column(Numeric(12, 2))
+    max_sell_price = Column(Numeric(12, 2))
+    
+    created_at = Column(DateTime, default=datetime.utcnow)
+    
+    __table_args__ = (
+        UniqueConstraint("material_id", "date", name="uq_material_date"),
+        CheckConstraint("avg_buy_price IS NULL OR avg_buy_price >= 0", name="check_history_avg_buy_positive"),
+        CheckConstraint("avg_sell_price IS NULL OR avg_sell_price >= 0", name="check_history_avg_sell_positive"),
+        CheckConstraint("min_buy_price IS NULL OR min_buy_price >= 0", name="check_history_min_buy_positive"),
+        CheckConstraint("max_sell_price IS NULL OR max_sell_price >= 0", name="check_history_max_sell_positive"),
+    )
+    
+    # Relationships
+    material = relationship("Material")
+    
+    def __repr__(self):
+        return f"<MarketPriceHistory(material_id={self.material_id}, date={self.date})>"
