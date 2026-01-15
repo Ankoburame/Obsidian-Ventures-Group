@@ -330,6 +330,7 @@ export default function GlobalInventoryPage() {
               color: COLORS.textPrimary,
               fontSize: "14px",
               outline: "none",
+              boxSizing: "border-box",
             }}
             onFocus={(e) => (e.target.style.borderColor = COLORS.orange)}
             onBlur={(e) => (e.target.style.borderColor = COLORS.bgLight)}

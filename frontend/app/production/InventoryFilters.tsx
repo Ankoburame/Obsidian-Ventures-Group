@@ -217,7 +217,7 @@ export function InventoryFilters({ inventory, onFilteredChange }: InventoryFilte
                             placeholder="Material name..."
                             style={{
                                 width: '100%',
-                                padding: '12px 10px',  // ← Plus de padding
+                                padding: '12px 10px',
                                 background: COLORS.bgDark,
                                 border: `1px solid ${COLORS.bgLight}`,
                                 borderRadius: '2px',
@@ -226,8 +226,9 @@ export function InventoryFilters({ inventory, onFilteredChange }: InventoryFilte
                                 fontFamily: 'monospace',
                                 cursor: 'pointer',
                                 outline: 'none',
-                                height: '40px',  // ← AJOUTER hauteur fixe
-                                lineHeight: '1'  // ← Line-height à 1
+                                height: '40px',
+                                lineHeight: '1',
+                                boxSizing: 'border-box'
                             }}
                             onFocus={(e) => e.target.style.borderColor = COLORS.orange}
                             onBlur={(e) => e.target.style.borderColor = COLORS.bgLight}

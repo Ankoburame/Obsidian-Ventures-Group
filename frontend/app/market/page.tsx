@@ -539,7 +539,8 @@ export default function MarketPage() {
               fontSize: '14px',
               fontFamily: 'monospace',
               outline: 'none',
-              transition: 'all 0.2s ease'
+              transition: 'all 0.2s ease',
+              boxSizing: 'border-box'
             }}
             onFocus={(e) => {
               e.target.style.borderColor = 'rgba(6, 182, 212, 0.5)';

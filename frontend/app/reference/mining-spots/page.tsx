@@ -42,17 +42,17 @@ export default function MiningSpots() {
         const data = await res.json();
         setLocations(data.locations);
         setFilteredLocations(data.locations);
-        
-        const uniqueMaterials = new Set<string>();
-        data.locations.forEach((loc: Location) => {
-          Object.keys(loc.materials).forEach(mat => uniqueMaterials.add(mat));
-        });
-        setAllMaterials(Array.from(uniqueMaterials).sort());
+
+        const firstLocation = data.locations[0];
+        if (firstLocation) {
+          const materialsInOrder = Object.keys(firstLocation.materials);
+          setAllMaterials(materialsInOrder);
+        }
       } catch (e) {
         console.error('Failed to load mining data:', e);
       }
     }
-    
+
     if (mounted) {
       loadData();
     }

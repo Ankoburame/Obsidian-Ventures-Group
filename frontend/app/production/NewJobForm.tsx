@@ -484,7 +484,8 @@ export function NewJobForm({ onJobCreated }: NewJobFormProps) {
                       fontSize: '14px',
                       fontFamily: 'monospace',
                       fontWeight: 700,
-                      outline: 'none'
+                      outline: 'none',
+                      boxSizing: 'border-box'
                     }}
                     onFocus={(e) => e.target.style.borderColor = COLORS.orange}
                     onBlur={(e) => e.target.style.borderColor = COLORS.bgLight}

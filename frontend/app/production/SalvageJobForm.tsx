@@ -4,7 +4,7 @@
 // ============================================================
 
 import React, { useState, useEffect } from "react";
-import { Recycle, Plus, Trash2, Loader } from "lucide-react";
+import { Recycle, Plus, Trash2, Loader, ChevronUp, ChevronDown } from "lucide-react";
 
 const COLORS = {
   orange: "#d97706",
@@ -221,16 +221,14 @@ export function SalvageJobForm({ onJobCreated }: SalvageJobFormProps) {
         }}
       >
         <span style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <span style={{
-            display: 'inline-block',
-            width: '16px',
-            height: '16px',
-            clipPath: 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)',
-            background: isOpen ? COLORS.red : COLORS.orange
-          }} />
+          <Recycle style={{ width: '20px', height: '20px', color: isOpen ? COLORS.red : COLORS.orange }} />
           NEW SALVAGE JOB
         </span>
-        <Recycle style={{ width: '20px', height: '20px' }} />
+        {isOpen ? (
+          <ChevronUp style={{ width: '20px', height: '20px' }} />
+        ) : (
+          <ChevronDown style={{ width: '20px', height: '20px' }} />
+        )}
       </button>
 
       {/* FORM */}
@@ -495,7 +493,8 @@ export function SalvageJobForm({ onJobCreated }: SalvageJobFormProps) {
                       fontSize: '14px',
                       fontFamily: 'monospace',
                       fontWeight: 700,
-                      outline: 'none'
+                      outline: 'none',
+                      boxSizing: 'border-box'
                     }}
                     onFocus={(e) => e.target.style.borderColor = COLORS.red}
                     onBlur={(e) => e.target.style.borderColor = COLORS.bgLight}
