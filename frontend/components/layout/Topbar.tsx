@@ -1,6 +1,6 @@
 "use client";
 
-import { Menu, Wifi, Settings, User, Bell, Search, LogOut, Home, Lock, Shield } from "lucide-react";
+import { Menu, Wifi, Settings, User, Bell, Search, LogOut, Home, Lock, Shield, Package } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -603,6 +603,40 @@ export function Topbar({ sidebarOpen, toggleSidebar }: TopbarProps) {
                   >
                     <Shield style={{ width: "16px", height: "16px" }} />
                     Admin Panel
+                  </button>
+                )}
+                {/* Global Inventory - Officers and Admins */}
+                {user && (user.is_admin || user.role === "officer") && (
+                  <button
+                    onClick={() => {
+                      setUserMenuOpen(false);
+                      router.push("/inventory");
+                    }}
+                    style={{
+                      width: "100%",
+                      padding: "12px 16px",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "12px",
+                      background: "transparent",
+                      border: "none",
+                      color: "#94a3b8",
+                      fontSize: "13px",
+                      cursor: "pointer",
+                      transition: "all 0.2s ease",
+                      textAlign: "left",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = "rgba(168, 85, 247, 0.1)";
+                      e.currentTarget.style.color = "#a855f7";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = "transparent";
+                      e.currentTarget.style.color = "#94a3b8";
+                    }}
+                  >
+                    <Package style={{ width: "16px", height: "16px" }} />
+                    Global Inventory
                   </button>
                 )}
                 <button

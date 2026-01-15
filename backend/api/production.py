@@ -11,7 +11,7 @@ from decimal import Decimal
 from pydantic import BaseModel
 
 from database import get_db
-from core.security import get_current_user
+from core.security import get_current_user, require_officer_or_admin
 from models.user import User
 from models.refining import RefiningJob, RefiningJobMaterial
 from models.material import Material
@@ -388,6 +388,89 @@ async def get_inventory(
         })
     
     return result
+
+
+@router.get("/inventory/global")
+async def get_global_inventory(
+    current_user: User = Depends(require_officer_or_admin),
+    db: Session = Depends(get_db)
+):
+    """
+    Get all users' inventory (Officer/Admin only).
+    Returns inventory grouped by user with totals.
+    """
+    # Get all inventory with user info, material info, and refinery source
+    query = text("""
+        SELECT DISTINCT ON (i.user_id, i.material_id)
+            i.id,
+            i.user_id,
+            u.username,
+            i.material_id,
+            m.name as material_name,
+            i.quantity,
+            i.unit,
+            i.last_updated,
+            rj.refinery_id,
+            l.name as refinery_name,
+            l.system as refinery_system
+        FROM inventory i
+        INNER JOIN users u ON u.id = i.user_id
+        INNER JOIN materials m ON m.id = i.material_id
+        LEFT JOIN inventory_events ie ON ie.user_id = i.user_id 
+            AND ie.material_id = i.material_id 
+            AND ie.event_type = 'refining_completed'
+        LEFT JOIN refining_jobs rj ON rj.id = ie.refining_job_id
+        LEFT JOIN locations l ON l.id = rj.refinery_id
+        WHERE i.quantity > 0
+        ORDER BY i.user_id, i.material_id, ie.created_at DESC
+    """)
+    
+    inventory_items = db.execute(query).fetchall()
+    
+    # Group by user
+    users_inventory = {}
+    
+    for inv in inventory_items:
+        user_id = inv.user_id
+        
+        if user_id not in users_inventory:
+            users_inventory[user_id] = {
+                "user_id": user_id,
+                "username": inv.username,
+                "total_estimated_value": 0,
+                "items": []
+            }
+        
+        # Get market price
+        market_price = db.query(MarketPrice).filter(
+            MarketPrice.material_id == inv.material_id
+        ).first()
+        
+        avg_price = float(market_price.avg_sell_price) if market_price and market_price.avg_sell_price else 0
+        estimated_total = float(inv.quantity) * avg_price
+        
+        item = {
+            "id": inv.id,
+            "refinery_id": inv.refinery_id or 0,
+            "refinery_name": inv.refinery_name or "Unknown Source",
+            "refinery_system": inv.refinery_system or "Unknown",
+            "material_id": inv.material_id,
+            "material_name": inv.material_name,
+            "quantity": float(inv.quantity),
+            "unit": inv.unit,
+            "estimated_unit_price": avg_price,
+            "estimated_total_value": round(estimated_total, 2),
+            "last_updated": inv.last_updated.isoformat() if inv.last_updated else None
+        }
+        
+        users_inventory[user_id]["items"].append(item)
+        users_inventory[user_id]["total_estimated_value"] += estimated_total
+    
+    # Round totals
+    for user_data in users_inventory.values():
+        user_data["total_estimated_value"] = round(user_data["total_estimated_value"], 2)
+    
+    return list(users_inventory.values())
 
 
 # ============================================================================

@@ -144,3 +144,26 @@ async def get_current_admin_user(
             detail="Not enough permissions"
         )
     return current_user
+
+
+async def require_officer_or_admin(
+    current_user = Depends(get_current_user)
+):
+    """
+    Verify current user is officer or admin.
+    
+    Args:
+        current_user: Current authenticated user
+    
+    Returns:
+        User object if officer or admin
+    
+    Raises:
+        HTTPException: If user is not officer or admin
+    """
+    if current_user.role not in ["officer", "admin"] and not current_user.is_admin:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Officer or Admin privileges required"
+        )
+    return current_user
