@@ -377,6 +377,7 @@ export function NewJobForm({ onJobCreated }: NewJobFormProps) {
                           );
                         })}
                       </select>
+
                       <input
                         type="number"
                         value={line.quantity || ''}
