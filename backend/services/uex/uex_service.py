@@ -16,7 +16,7 @@ from models.location import Location
 
 # Configuration
 UEX_API_BASE_URL = "https://api.uexcorp.space/2.0"
-CACHE_TTL_HOURS = 12
+CACHE_TTL_HOURS = 5
 
 def get_headers() -> dict:
     """Retourne les headers pour les requêtes UEX API."""

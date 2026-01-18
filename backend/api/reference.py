@@ -31,7 +31,7 @@ async def list_materials(
     - is_salvage: Filter salvage materials
     """
     # Liste stricte des 23 matériaux raffinables
-    refinable_ids = [1, 5, 11, 13, 15, 20, 22, 33, 39, 44, 47, 58, 60, 73, 75, 77, 95, 98, 115, 117, 175, 179, 181]
+    refinable_ids = [1, 5, 11, 13, 15, 20, 22, 33, 39, 44, 47, 58, 60, 73, 75, 77, 95, 98, 115, 117, 118, 175, 179, 181]
     
     query = db.query(Material).filter(Material.id.in_(refinable_ids))
     
