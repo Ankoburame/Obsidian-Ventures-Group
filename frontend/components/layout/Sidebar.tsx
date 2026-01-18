@@ -22,17 +22,19 @@ import {
   Clock,
   PieChart,
   Users,
+  Ship,
 } from "lucide-react";
 
-type SidebarProps = {
-  open: boolean;
-  toggleSidebar: () => void;
-};
+  type SidebarProps = {
+    open: boolean;
+    toggleSidebar: () => void;
+  };
 
 const navItems = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
   { href: "/production", label: "Production", icon: Factory },
   { href: "/commerce", label: "Commerce", icon: ShoppingCart },
+  { href: "/fleet", label: "Fleet", icon: Ship },
   { href: "/market", label: "Market", icon: TrendingUp },
 ];
 

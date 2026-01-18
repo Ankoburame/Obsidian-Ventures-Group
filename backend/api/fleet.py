@@ -185,26 +185,51 @@ async def sync_ships_from_uex(
             if not uex_id or not name:
                 continue
             
+            # Extract data with multiple fallbacks
+            manufacturer = vehicle.get("manufacturer", vehicle.get("manufacturerName", vehicle.get("brand")))
+            
+            # Role can be in: type, classification, role, focus
+            role = (
+                vehicle.get("role") or 
+                vehicle.get("focus") or 
+                vehicle.get("classification") or 
+                vehicle.get("type") or 
+                "Multi-role"
+            )
+            
+            # Cargo: cargo, cargoCapacity, scu
+            cargo = vehicle.get("cargo") or vehicle.get("cargoCapacity") or vehicle.get("scu") or 0
+            
+            # Images: media.storeUrl, thumbnail, image, imageUrl
+            media = vehicle.get("media", {})
+            image_url = (
+                media.get("storeUrl") or 
+                media.get("thumbnail") or 
+                vehicle.get("image") or 
+                vehicle.get("imageUrl") or 
+                None
+            )
+            
             # Check if ship already exists
             existing = db.query(Ship).filter(Ship.uex_id == uex_id).first()
             
             if existing:
                 # Update existing
                 existing.name = name
-                existing.manufacturer = vehicle.get("manufacturer")
-                existing.role = vehicle.get("type", "Unknown")  # UEX might use "type" for role
-                existing.cargo_capacity_scu = vehicle.get("cargo", 0)
-                existing.image_url = vehicle.get("media", {}).get("storeUrl") if vehicle.get("media") else None
+                existing.manufacturer = manufacturer
+                existing.role = role
+                existing.cargo_capacity_scu = cargo
+                existing.image_url = image_url
                 updated += 1
             else:
                 # Create new
                 ship = Ship(
                     uex_id=uex_id,
                     name=name,
-                    manufacturer=vehicle.get("manufacturer"),
-                    role=vehicle.get("type", "Unknown"),
-                    cargo_capacity_scu=vehicle.get("cargo", 0),
-                    image_url=vehicle.get("media", {}).get("storeUrl") if vehicle.get("media") else None,
+                    manufacturer=manufacturer,
+                    role=role,
+                    cargo_capacity_scu=cargo,
+                    image_url=image_url,
                     owner_id=current_user.id,
                     status="available"
                 )
