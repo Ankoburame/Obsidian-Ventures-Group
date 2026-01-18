@@ -365,13 +365,18 @@ export function NewJobForm({ onJobCreated }: NewJobFormProps) {
                         onBlur={(e) => e.target.style.borderColor = COLORS.bgLight}
                       >
                         <option value={0}>Select material...</option>
-                        {materials.map(mat => (
-                          <option key={mat.id} value={mat.id}>
-                            {mat.name}
-                          </option>
-                        ))}
+                        {materials.map(mat => {
+                          // Désactiver si déjà sélectionné dans une autre ligne
+                          const isAlreadySelected = materialLines.some(
+                            otherLine => otherLine.id !== line.id && otherLine.material_id === mat.id
+                          );
+                          return (
+                            <option key={mat.id} value={mat.id} disabled={isAlreadySelected}>
+                              {mat.name}{isAlreadySelected ? ' (already selected)' : ''}
+                            </option>
+                          );
+                        })}
                       </select>
-
                       <input
                         type="number"
                         value={line.quantity || ''}

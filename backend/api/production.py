@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from sqlalchemy import func, text
 from datetime import datetime, timedelta
+import math
 from typing import Optional, List
 from decimal import Decimal
 from pydantic import BaseModel
@@ -152,6 +153,15 @@ async def create_job(
         
         job_id = result.fetchone()[0]
         
+        
+        # Validation: vérifier qu'il n'y a pas de doublons de matériaux
+        material_ids = [mat.material_id for mat in job_input.materials]
+        if len(material_ids) != len(set(material_ids)):
+            db.rollback()
+            raise HTTPException(
+                status_code=400, 
+                detail="Duplicate materials are not allowed. Each material can only be added once per job."
+            )
         # Add materials
         for mat in job_input.materials:
             db.execute(text("""
@@ -241,7 +251,7 @@ async def collect_job(
         # Group materials by material_id to avoid duplicate key violations
         materials_by_id = {}
         for jm in job.materials:
-            quantity_in_scu = jm.quantity_refined / 100
+            quantity_in_scu = math.ceil(jm.quantity_refined / 100)
             if jm.material_id in materials_by_id:
                 materials_by_id[jm.material_id]['quantity'] += quantity_in_scu
             else:
