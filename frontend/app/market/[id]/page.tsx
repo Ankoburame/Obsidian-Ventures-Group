@@ -36,22 +36,6 @@ interface Location {
   full_path: string;
 }
 
-function generateMiniChartData(variation: number): number[] {
-  const baseValue = 100;
-  const points = 40;
-  const data: number[] = [];
-
-  let current = baseValue;
-  for (let i = 0; i < points; i++) {
-    const noise = (Math.random() - 0.5) * 5;
-    const trend = (variation / points) * i;
-    current = baseValue + trend + noise;
-    data.push(current);
-  }
-
-  return data;
-}
-
 export default function MaterialDetailPage() {
   const router = useRouter();
   const params = useParams();
@@ -59,19 +43,35 @@ export default function MaterialDetailPage() {
 
   const [material, setMaterial] = useState<Material | null>(null);
   const [loading, setLoading] = useState(true);
-  const [variation] = useState((Math.random() - 0.5) * 10);
+  const [priceHistory, setPriceHistory] = useState<any[]>([]);
+  const [variation, setVariation] = useState(0);
 
   useEffect(() => {
     async function loadMaterial() {
       try {
-        const res = await fetch(`${API_URL}/market/materials/${materialId}`);
-        const data = await res.json();
+        const [materialRes, historyRes] = await Promise.all([
+          fetch(`${API_URL}/market/materials/${materialId}`),
+          fetch(`${API_URL}/market/price-history/${materialId}?days=30`)
+        ]);
 
-        // Le backend retourne { material: {...}, prices: [...] }
-        // On a besoin juste de "material"
-        const materialData = data.material || data;
+        const materialData = await materialRes.json();
+        const historyData = await historyRes.json();
 
-        setMaterial(materialData);
+        const material = materialData.material || materialData;
+
+        setMaterial(material);
+        setPriceHistory(historyData);
+
+        // Calculer la variation réelle depuis les snapshots
+        if (historyData.length >= 2) {
+          const oldest = historyData[0].avg_sell_price;
+          const newest = historyData[historyData.length - 1].avg_sell_price;
+          if (oldest && newest) {
+            const calc = ((newest - oldest) / oldest) * 100;
+            setVariation(calc);
+          }
+        }
+
         setLoading(false);
       } catch (e) {
         console.error("Error loading material:", e);
@@ -83,7 +83,6 @@ export default function MaterialDetailPage() {
       loadMaterial();
     }
   }, [materialId]);
-
   if (loading) {
     return (
       <div style={{
@@ -142,7 +141,10 @@ export default function MaterialDetailPage() {
     );
   }
 
-  const chartData = generateMiniChartData(variation);
+  // Utiliser les vraies données de priceHistory
+  const chartData = priceHistory.length > 0 
+    ? priceHistory.map(p => p.avg_sell_price || 0)
+    : [100];
 
   return (
     <div style={{ padding: '32px', maxWidth: '1400px', margin: '0 auto' }}>

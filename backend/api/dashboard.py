@@ -69,14 +69,19 @@ async def get_dashboard_stats(
     
     refining_history = []
     for job in completed_jobs:
+        materials = []
         for jm in job.materials:
             material = db.query(Material).filter(Material.id == jm.material_id).first()
-            refining_history.append({
-                "id": job.id,
-                "material": material.name if material else "Unknown",
-                "quantity": float(jm.quantity_refined),
-                "ended_at": job.collected_at.isoformat() if job.collected_at else job.end_time.isoformat()
+            materials.append({
+                "name": material.name if material else "Unknown",
+                "quantity": float(jm.quantity_refined)
             })
+        
+        refining_history.append({
+            "id": job.id,
+            "materials": materials,
+            "ended_at": job.collected_at.isoformat() if job.collected_at else job.end_time.isoformat()
+        })
     
     return {
         "stock_total": round(stock_total, 2),
