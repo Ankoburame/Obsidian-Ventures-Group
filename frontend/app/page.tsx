@@ -103,8 +103,45 @@ export default function DashboardPage() {
         }
 
         loadData();
-        const interval = setInterval(loadData, 30000);
-        return () => clearInterval(interval);
+        const dataInterval = setInterval(loadData, 30000);
+        return () => clearInterval(dataInterval);
+    }, [mounted]);
+
+    // Update progress bars every second
+    useEffect(() => {
+        if (!mounted) return;
+
+        const progressInterval = setInterval(() => {
+            setJobs(prevJobs => {
+                if (prevJobs.length === 0) return prevJobs;
+                
+                return prevJobs.map(job => {
+                    if (job.status !== 'processing') return job;
+
+                    const secondsRemaining = job.seconds_remaining - 1;
+                    
+                    if (secondsRemaining <= 0) {
+                        return {
+                            ...job,
+                            seconds_remaining: 0,
+                            progress_percentage: 100
+                        };
+                    }
+
+                    const totalSeconds = job.processing_time * 60;
+                    const elapsedSeconds = totalSeconds - secondsRemaining;
+                    const progress = (elapsedSeconds / totalSeconds) * 100;
+
+                    return {
+                        ...job,
+                        seconds_remaining: secondsRemaining,
+                        progress_percentage: Math.min(100, Math.max(0, progress))
+                    };
+                });
+            });
+        }, 1000);
+
+        return () => clearInterval(progressInterval);
     }, [mounted]);
 
     if (!mounted || !dashboard) {

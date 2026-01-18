@@ -22,4 +22,6 @@ __all__ = [
     "MarketPrice",
     "PriceSnapshot",
     "CargoRun",
+    "Ship",
 ]
+from models.ship import Ship
