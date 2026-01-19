@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Ship, Plus, Trash2, Loader2, Package, AlertCircle } from "lucide-react";
+import { Ship, Plus, Trash2, Loader2, Package } from "lucide-react";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
 
@@ -407,13 +407,18 @@ export default function FleetPage() {
             )}
 
             {/* MANUFACTURER FILTERS */}
-            <div style={{
-                marginBottom: '20px',
-                overflowX: 'auto',
-                display: 'flex',
-                gap: '12px',
-                paddingBottom: '8px'
-            }}>
+            <div 
+                className="manufacturer-scroll"
+                style={{
+                    marginBottom: '20px',
+                    overflowX: 'auto',
+                    overflowY: 'hidden',
+                    display: 'flex',
+                    gap: '12px',
+                    paddingBottom: '12px',
+                    whiteSpace: 'nowrap'
+                }}
+            >
                 <button
                     onClick={() => setFilterManufacturer(null)}
                     style={{
@@ -429,7 +434,8 @@ export default function FleetPage() {
                         fontWeight: 600,
                         letterSpacing: '1px',
                         cursor: 'pointer',
-                        transition: 'all 0.2s ease'
+                        transition: 'all 0.2s ease',
+                        flexShrink: 0
                     }}
                 >
                     ALL
@@ -451,7 +457,8 @@ export default function FleetPage() {
                             display: 'flex',
                             alignItems: 'center',
                             gap: '8px',
-                            justifyContent: 'center'
+                            justifyContent: 'center',
+                            flexShrink: 0
                         }}
                         onMouseEnter={(e) => {
                             if (filterManufacturer !== mfr.name) {
@@ -771,6 +778,24 @@ export default function FleetPage() {
             <style jsx>{`
                 @keyframes spin {
                     to { transform: rotate(360deg); }
+                }
+                .manufacturer-scroll::-webkit-scrollbar {
+                    height: 8px;
+                }
+                .manufacturer-scroll::-webkit-scrollbar-track {
+                    background: rgba(0, 0, 0, 0.3);
+                    border-radius: 4px;
+                }
+                .manufacturer-scroll::-webkit-scrollbar-thumb {
+                    background: rgba(6, 182, 212, 0.5);
+                    border-radius: 4px;
+                }
+                .manufacturer-scroll::-webkit-scrollbar-thumb:hover {
+                    background: rgba(6, 182, 212, 0.7);
+                }
+                .manufacturer-scroll {
+                    scrollbar-width: thin;
+                    scrollbar-color: rgba(6, 182, 212, 0.5) rgba(0, 0, 0, 0.3);
                 }
             `}</style>
         </div>
