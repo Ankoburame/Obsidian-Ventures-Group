@@ -28,11 +28,11 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="fr">
+    <html lang="fr" style={{ overflowX: 'hidden', maxWidth: '100vw' }}>
       <head>
         <link rel="icon" href="/images/logo/ovg_icon_only.svg" type="image/svg+xml" />
       </head>
-      <body>
+      <body style={{ overflowX: 'hidden', maxWidth: '100vw', margin: 0 }}>
         <AppShell>{children}</AppShell>
       </body>
     </html>

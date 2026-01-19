@@ -66,6 +66,7 @@ export default function FleetPage() {
     const [selectedTemplate, setSelectedTemplate] = useState<ShipTemplate | null>(null);
     const [currentUserRole, setCurrentUserRole] = useState<string>("");
     const [currentUserId, setCurrentUserId] = useState<number | null>(null);
+    const [carouselPage, setCarouselPage] = useState(0);
 
     useEffect(() => {
         loadShipTemplates();
@@ -226,7 +227,7 @@ export default function FleetPage() {
     }
 
     return (
-        <div style={{ padding: '32px', minHeight: '100vh' }}>
+        <div style={{ padding: '32px', minHeight: '100vh', maxWidth: '100%', overflowX: 'hidden' }}>
             {/* HEADER */}
             <div style={{
                 display: 'flex',
@@ -407,91 +408,205 @@ export default function FleetPage() {
             )}
 
             {/* MANUFACTURER FILTERS */}
-            <div 
-                className="manufacturer-scroll"
-                style={{
-                    marginBottom: '20px',
-                    overflowX: 'auto',
-                    overflowY: 'hidden',
+            <div style={{ 
+                marginBottom: '20px',
+                position: 'relative',
+                width: '100%',
+                maxWidth: '100%'
+            }}>
+                <div style={{
                     display: 'flex',
+                    alignItems: 'center',
                     gap: '12px',
-                    paddingBottom: '12px',
-                    whiteSpace: 'nowrap'
-                }}
-            >
-                <button
-                    onClick={() => setFilterManufacturer(null)}
-                    style={{
-                        minWidth: '120px',
-                        padding: '8px 16px',
-                        background: !filterManufacturer
-                            ? 'rgba(6, 182, 212, 0.2)'
-                            : 'rgba(0, 0, 0, 0.3)',
-                        border: `1px solid ${!filterManufacturer ? '#06b6d4' : 'rgba(82, 82, 91, 0.5)'}`,
-                        borderRadius: '6px',
-                        color: !filterManufacturer ? '#06b6d4' : '#71717a',
-                        fontSize: '12px',
-                        fontWeight: 600,
-                        letterSpacing: '1px',
-                        cursor: 'pointer',
-                        transition: 'all 0.2s ease',
-                        flexShrink: 0
-                    }}
-                >
-                    ALL
-                </button>
-                {MANUFACTURERS.map(mfr => (
+                    width: '100%',
+                    minWidth: 0
+                }}>
+                    {/* Left Arrow */}
                     <button
-                        key={mfr.name}
-                        onClick={() => setFilterManufacturer(mfr.name)}
+                        onClick={() => setCarouselPage(Math.max(0, carouselPage - 1))}
+                        disabled={carouselPage === 0}
                         style={{
-                            minWidth: '140px',
-                            padding: '8px 16px',
-                            background: filterManufacturer === mfr.name
-                                ? 'rgba(6, 182, 212, 0.2)'
-                                : 'rgba(0, 0, 0, 0.3)',
-                            border: `1px solid ${filterManufacturer === mfr.name ? '#06b6d4' : 'rgba(82, 82, 91, 0.5)'}`,
+                            padding: '8px',
+                            background: carouselPage === 0 ? 'rgba(82, 82, 91, 0.1)' : 'rgba(6, 182, 212, 0.1)',
+                            border: `1px solid ${carouselPage === 0 ? 'rgba(82, 82, 91, 0.3)' : 'rgba(6, 182, 212, 0.3)'}`,
                             borderRadius: '6px',
-                            cursor: 'pointer',
+                            color: carouselPage === 0 ? '#52525b' : '#06b6d4',
+                            cursor: carouselPage === 0 ? 'not-allowed' : 'pointer',
                             transition: 'all 0.2s ease',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '8px',
-                            justifyContent: 'center',
-                            flexShrink: 0
+                            flexShrink: 0,
+                            opacity: carouselPage === 0 ? 0.5 : 1
                         }}
                         onMouseEnter={(e) => {
-                            if (filterManufacturer !== mfr.name) {
-                                e.currentTarget.style.borderColor = 'rgba(6, 182, 212, 0.4)';
+                            if (carouselPage !== 0) {
+                                e.currentTarget.style.background = 'rgba(6, 182, 212, 0.2)';
+                                e.currentTarget.style.borderColor = 'rgba(6, 182, 212, 0.5)';
                             }
                         }}
                         onMouseLeave={(e) => {
-                            if (filterManufacturer !== mfr.name) {
-                                e.currentTarget.style.borderColor = 'rgba(82, 82, 91, 0.5)';
+                            if (carouselPage !== 0) {
+                                e.currentTarget.style.background = 'rgba(6, 182, 212, 0.1)';
+                                e.currentTarget.style.borderColor = 'rgba(6, 182, 212, 0.3)';
                             }
                         }}
                     >
-                        <img 
-                            src={mfr.logo} 
-                            alt={mfr.name}
-                            style={{
-                                height: '20px',
-                                width: 'auto',
-                                filter: filterManufacturer === mfr.name 
-                                    ? 'brightness(0) saturate(100%) invert(68%) sepia(60%) saturate(2684%) hue-rotate(158deg) brightness(97%) contrast(101%)'
-                                    : 'brightness(0) saturate(100%) invert(48%) sepia(0%) saturate(0%) hue-rotate(180deg) brightness(96%) contrast(88%)'
-                            }}
-                        />
-                        <span style={{
-                            fontSize: '11px',
-                            fontWeight: 600,
-                            letterSpacing: '0.5px',
-                            color: filterManufacturer === mfr.name ? '#06b6d4' : '#71717a'
-                        }}>
-                            {mfr.name.toUpperCase()}
-                        </span>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="M15 18l-6-6 6-6"/>
+                        </svg>
                     </button>
-                ))}
+
+                    {/* Carousel Container - Fixed width items */}
+                    <div style={{
+                        display: 'flex',
+                        gap: '12px',
+                        flex: 1,
+                        justifyContent: 'flex-start',
+                        overflow: 'hidden'
+                    }}>
+                        {(() => {
+                            const itemsPerPage = 5;
+                            const allItems = [
+                                { value: null, label: 'ALL' },
+                                ...MANUFACTURERS.map(m => ({ value: m.name, label: m.name, logo: m.logo }))
+                            ];
+                            const totalPages = Math.ceil(allItems.length / itemsPerPage);
+                            const startIdx = carouselPage * itemsPerPage;
+                            const visibleItems = allItems.slice(startIdx, startIdx + itemsPerPage);
+
+                            return visibleItems.map((item) => (
+                                <button
+                                    key={item.label}
+                                    onClick={() => setFilterManufacturer(item.value)}
+                                    style={{
+                                        padding: '8px 16px',
+                                        background: filterManufacturer === item.value
+                                            ? 'rgba(6, 182, 212, 0.2)'
+                                            : 'rgba(0, 0, 0, 0.3)',
+                                        border: `1px solid ${filterManufacturer === item.value ? '#06b6d4' : 'rgba(82, 82, 91, 0.5)'}`,
+                                        borderRadius: '6px',
+                                        color: filterManufacturer === item.value ? '#06b6d4' : '#71717a',
+                                        fontSize: item.value === null ? '12px' : '11px',
+                                        fontWeight: 600,
+                                        letterSpacing: item.value === null ? '1px' : '0.5px',
+                                        cursor: 'pointer',
+                                        transition: 'all 0.2s ease',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '8px',
+                                        justifyContent: 'center',
+                                        flex: 1,
+                                        minWidth: 0,
+                                        whiteSpace: 'nowrap'
+                                    }}
+                                    onMouseEnter={(e) => {
+                                        if (filterManufacturer !== item.value) {
+                                            e.currentTarget.style.borderColor = 'rgba(6, 182, 212, 0.4)';
+                                        }
+                                    }}
+                                    onMouseLeave={(e) => {
+                                        if (filterManufacturer !== item.value) {
+                                            e.currentTarget.style.borderColor = 'rgba(82, 82, 91, 0.5)';
+                                        }
+                                    }}
+                                >
+                                    {item.value !== null && (
+                                        <img 
+                                            src={item.logo} 
+                                            alt={item.label}
+                                            style={{
+                                                height: '20px',
+                                                width: 'auto',
+                                                flexShrink: 0,
+                                                filter: filterManufacturer === item.value 
+                                                    ? 'brightness(0) saturate(100%) invert(68%) sepia(60%) saturate(2684%) hue-rotate(158deg) brightness(97%) contrast(101%)'
+                                                    : 'brightness(0) saturate(100%) invert(48%) sepia(0%) saturate(0%) hue-rotate(180deg) brightness(96%) contrast(88%)'
+                                            }}
+                                        />
+                                    )}
+                                    <span style={{
+                                        overflow: 'hidden',
+                                        textOverflow: 'ellipsis'
+                                    }}>
+                                        {item.label.toUpperCase()}
+                                    </span>
+                                </button>
+                            ));
+                        })()}
+                    </div>
+
+                    {/* Right Arrow */}
+                    <button
+                        onClick={() => {
+                            const itemsPerPage = 5;
+                            const allItems = [{ value: null, label: 'ALL' }, ...MANUFACTURERS];
+                            const totalPages = Math.ceil(allItems.length / itemsPerPage);
+                            setCarouselPage(Math.min(totalPages - 1, carouselPage + 1));
+                        }}
+                        disabled={(() => {
+                            const itemsPerPage = 5;
+                            const allItems = [{ value: null, label: 'ALL' }, ...MANUFACTURERS];
+                            const totalPages = Math.ceil(allItems.length / itemsPerPage);
+                            return carouselPage >= totalPages - 1;
+                        })()}
+                        style={{
+                            padding: '8px',
+                            background: (() => {
+                                const itemsPerPage = 5;
+                                const allItems = [{ value: null, label: 'ALL' }, ...MANUFACTURERS];
+                                const totalPages = Math.ceil(allItems.length / itemsPerPage);
+                                return carouselPage >= totalPages - 1 ? 'rgba(82, 82, 91, 0.1)' : 'rgba(6, 182, 212, 0.1)';
+                            })(),
+                            border: `1px solid ${(() => {
+                                const itemsPerPage = 5;
+                                const allItems = [{ value: null, label: 'ALL' }, ...MANUFACTURERS];
+                                const totalPages = Math.ceil(allItems.length / itemsPerPage);
+                                return carouselPage >= totalPages - 1 ? 'rgba(82, 82, 91, 0.3)' : 'rgba(6, 182, 212, 0.3)';
+                            })()}`,
+                            borderRadius: '6px',
+                            color: (() => {
+                                const itemsPerPage = 5;
+                                const allItems = [{ value: null, label: 'ALL' }, ...MANUFACTURERS];
+                                const totalPages = Math.ceil(allItems.length / itemsPerPage);
+                                return carouselPage >= totalPages - 1 ? '#52525b' : '#06b6d4';
+                            })(),
+                            cursor: (() => {
+                                const itemsPerPage = 5;
+                                const allItems = [{ value: null, label: 'ALL' }, ...MANUFACTURERS];
+                                const totalPages = Math.ceil(allItems.length / itemsPerPage);
+                                return carouselPage >= totalPages - 1 ? 'not-allowed' : 'pointer';
+                            })(),
+                            transition: 'all 0.2s ease',
+                            flexShrink: 0,
+                            opacity: (() => {
+                                const itemsPerPage = 5;
+                                const allItems = [{ value: null, label: 'ALL' }, ...MANUFACTURERS];
+                                const totalPages = Math.ceil(allItems.length / itemsPerPage);
+                                return carouselPage >= totalPages - 1 ? 0.5 : 1;
+                            })()
+                        }}
+                        onMouseEnter={(e) => {
+                            const itemsPerPage = 5;
+                            const allItems = [{ value: null, label: 'ALL' }, ...MANUFACTURERS];
+                            const totalPages = Math.ceil(allItems.length / itemsPerPage);
+                            if (carouselPage < totalPages - 1) {
+                                e.currentTarget.style.background = 'rgba(6, 182, 212, 0.2)';
+                                e.currentTarget.style.borderColor = 'rgba(6, 182, 212, 0.5)';
+                            }
+                        }}
+                        onMouseLeave={(e) => {
+                            const itemsPerPage = 5;
+                            const allItems = [{ value: null, label: 'ALL' }, ...MANUFACTURERS];
+                            const totalPages = Math.ceil(allItems.length / itemsPerPage);
+                            if (carouselPage < totalPages - 1) {
+                                e.currentTarget.style.background = 'rgba(6, 182, 212, 0.1)';
+                                e.currentTarget.style.borderColor = 'rgba(6, 182, 212, 0.3)';
+                            }
+                        }}
+                    >
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="M9 18l6-6-6-6"/>
+                        </svg>
+                    </button>
+                </div>
             </div>
 
             {/* STATUS FILTERS */}
@@ -581,15 +696,31 @@ export default function FleetPage() {
                                 <div style={{
                                     width: '100%',
                                     height: '200px',
-                                    background: ship.image_url 
-                                        ? `url(${ship.image_url}) center/cover no-repeat, linear-gradient(135deg, rgba(6, 182, 212, 0.1) 0%, rgba(0, 0, 0, 0.6) 100%)`
-                                        : 'linear-gradient(135deg, rgba(6, 182, 212, 0.15) 0%, rgba(0, 0, 0, 0.8) 100%)',
+                                    background: 'linear-gradient(135deg, rgba(6, 182, 212, 0.1) 0%, rgba(0, 0, 0, 0.6) 100%)',
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
                                     position: 'relative',
-                                    borderBottom: '1px solid rgba(6, 182, 212, 0.2)'
+                                    borderBottom: '1px solid rgba(6, 182, 212, 0.2)',
+                                    overflow: 'hidden'
                                 }}>
+                                    {ship.image_url ? (
+                                        <img 
+                                            src={ship.image_url} 
+                                            alt={ship.name}
+                                            style={{
+                                                width: '100%',
+                                                height: '100%',
+                                                objectFit: 'cover',
+                                                position: 'absolute',
+                                                top: 0,
+                                                left: 0
+                                            }}
+                                            onError={(e) => {
+                                                e.currentTarget.style.display = 'none';
+                                            }}
+                                        />
+                                    ) : null}
                                     {!ship.image_url && (
                                         <div style={{ 
                                             display: 'flex', 
@@ -778,24 +909,6 @@ export default function FleetPage() {
             <style jsx>{`
                 @keyframes spin {
                     to { transform: rotate(360deg); }
-                }
-                .manufacturer-scroll::-webkit-scrollbar {
-                    height: 8px;
-                }
-                .manufacturer-scroll::-webkit-scrollbar-track {
-                    background: rgba(0, 0, 0, 0.3);
-                    border-radius: 4px;
-                }
-                .manufacturer-scroll::-webkit-scrollbar-thumb {
-                    background: rgba(6, 182, 212, 0.5);
-                    border-radius: 4px;
-                }
-                .manufacturer-scroll::-webkit-scrollbar-thumb:hover {
-                    background: rgba(6, 182, 212, 0.7);
-                }
-                .manufacturer-scroll {
-                    scrollbar-width: thin;
-                    scrollbar-color: rgba(6, 182, 212, 0.5) rgba(0, 0, 0, 0.3);
                 }
             `}</style>
         </div>
