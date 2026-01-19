@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Ship, Plus, Trash2, Edit, RefreshCw, Loader2, Package, AlertCircle } from "lucide-react";
+import { Ship, Plus, Trash2, Loader2, Package, AlertCircle } from "lucide-react";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
 
@@ -15,7 +15,21 @@ interface ShipData {
     status: string;
     image_url: string | null;
     owner_id: number;
+    owner_username: string | null;
     created_at: string | null;
+}
+
+interface ShipTemplate {
+    id: string;
+    name: string;
+    manufacturer: string;
+    role: string[];
+    cost: number;
+    cargo_scu: number;
+    "max-crew": number;
+    size: string;
+    image_url: string;
+    flight_ready: boolean;
 }
 
 const STATUS_COLORS = {
@@ -24,28 +38,72 @@ const STATUS_COLORS = {
     maintenance: { bg: "rgba(239, 68, 68, 0.1)", border: "#ef4444", text: "#ef4444" },
 };
 
+const MANUFACTURERS = [
+    { name: "Aegis Dynamics", logo: "/logo/Sc-logo-aegis.svg" },
+    { name: "Anvil Aerospace", logo: "/logo/Sc-logo-anvil-aerospace.svg" },
+    { name: "Aopoa", logo: "/logo/Sc-logo-aopoa.svg" },
+    { name: "Argo Astronautics", logo: "/logo/Sc-logo-argo-astronautics.svg" },
+    { name: "Banu", logo: "/logo/Sc-logo-banu.svg" },
+    { name: "Consolidated Outland", logo: "/logo/Sc-logo-consolidated-outland.svg" },
+    { name: "Crusader Industries", logo: "/logo/Sc-logo-crusader.svg" },
+    { name: "Drake Interplanetary", logo: "/logo/Sc-logo-drake.svg" },
+    { name: "Esperia", logo: "/logo/Sc-logo-esperia.svg" },
+    { name: "Gatac Manufacture", logo: "/logo/Sc-logo-gatac.svg" },
+    { name: "Kruger Intergalactic", logo: "/logo/Sc-logo-kruger.svg" },
+    { name: "MISC", logo: "/logo/Sc-logo-misc.svg" },
+    { name: "Origin Jumpworks", logo: "/logo/Sc-logo-origin.svg" },
+    { name: "Roberts Space Industries", logo: "/logo/Sc-logo-rsi.svg" },
+];
+
 export default function FleetPage() {
     const [ships, setShips] = useState<ShipData[]>([]);
+    const [shipTemplates, setShipTemplates] = useState<ShipTemplate[]>([]);
     const [loading, setLoading] = useState(true);
-    const [syncing, setSyncing] = useState(false);
     const [filterStatus, setFilterStatus] = useState<string | null>(null);
+    const [filterManufacturer, setFilterManufacturer] = useState<string | null>(null);
     const [showAddForm, setShowAddForm] = useState(false);
-    const [newShip, setNewShip] = useState({
-        name: "",
-        manufacturer: "",
-        role: "",
-        cargo_capacity_scu: 0,
-    });
+    const [searchShip, setSearchShip] = useState("");
+    const [selectedTemplate, setSelectedTemplate] = useState<ShipTemplate | null>(null);
+    const [currentUserRole, setCurrentUserRole] = useState<string>("");
+    const [currentUserId, setCurrentUserId] = useState<number | null>(null);
 
     useEffect(() => {
+        loadShipTemplates();
         loadShips();
-    }, [filterStatus]);
+        loadCurrentUser();
+    }, [filterStatus, filterManufacturer]);
+
+    async function loadCurrentUser() {
+        try {
+            const res = await fetch(`${API_URL}/auth/me`, {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem("token")}`
+                }
+            });
+            const data = await res.json();
+            setCurrentUserRole(data.role);
+            setCurrentUserId(data.id);
+        } catch (e) {
+            console.error("Error loading user:", e);
+        }
+    }
+
+    async function loadShipTemplates() {
+        try {
+            const res = await fetch("/ship_list.json");
+            const data = await res.json();
+            setShipTemplates(data);
+        } catch (e) {
+            console.error("Error loading ship templates:", e);
+        }
+    }
 
     async function loadShips() {
         try {
-            const url = filterStatus 
-                ? `${API_URL}/fleet/ships?status=${filterStatus}`
-                : `${API_URL}/fleet/ships`;
+            let url = `${API_URL}/fleet/ships`;
+            const params = new URLSearchParams();
+            if (filterStatus) params.append("status", filterStatus);
+            if (params.toString()) url += `?${params.toString()}`;
             
             const res = await fetch(url, {
                 headers: {
@@ -53,7 +111,15 @@ export default function FleetPage() {
                 }
             });
             const data = await res.json();
-            setShips(Array.isArray(data) ? data : []);
+            
+            let filteredShips = Array.isArray(data) ? data : [];
+            
+            // Filter by manufacturer on frontend (since backend doesn't have this filter)
+            if (filterManufacturer) {
+                filteredShips = filteredShips.filter(s => s.manufacturer === filterManufacturer);
+            }
+            
+            setShips(filteredShips);
             setLoading(false);
         } catch (e) {
             console.error("Error loading ships:", e);
@@ -61,30 +127,9 @@ export default function FleetPage() {
         }
     }
 
-    async function syncFromUEX() {
-        setSyncing(true);
-        try {
-            const res = await fetch(`${API_URL}/fleet/sync-uex`, {
-                method: "POST",
-                headers: {
-                    Authorization: `Bearer ${localStorage.getItem("token")}`
-                }
-            });
-            
-            if (res.ok) {
-                await loadShips();
-                alert("Fleet synced successfully!");
-            } else {
-                alert("Sync failed. Check console for details.");
-            }
-        } catch (e) {
-            console.error("Sync error:", e);
-            alert("Sync failed. Check console for details.");
-        }
-        setSyncing(false);
-    }
-
     async function addShip() {
+        if (!selectedTemplate) return;
+        
         try {
             const res = await fetch(`${API_URL}/fleet/ships`, {
                 method: "POST",
@@ -92,13 +137,21 @@ export default function FleetPage() {
                     "Content-Type": "application/json",
                     Authorization: `Bearer ${localStorage.getItem("token")}`
                 },
-                body: JSON.stringify(newShip)
+                body: JSON.stringify({
+                    name: selectedTemplate.name,
+                    manufacturer: selectedTemplate.manufacturer,
+                    role: selectedTemplate.role.join(", "),
+                    cargo_capacity_scu: selectedTemplate.cargo_scu,
+                    image_url: selectedTemplate.image_url,
+                    status: "available"
+                })
             });
 
             if (res.ok) {
                 await loadShips();
                 setShowAddForm(false);
-                setNewShip({ name: "", manufacturer: "", role: "", cargo_capacity_scu: 0 });
+                setSearchShip("");
+                setSelectedTemplate(null);
             }
         } catch (e) {
             console.error("Error adding ship:", e);
@@ -125,17 +178,32 @@ export default function FleetPage() {
         if (!confirm("Remove this ship from fleet?")) return;
         
         try {
-            await fetch(`${API_URL}/fleet/ships/${shipId}`, {
+            const res = await fetch(`${API_URL}/fleet/ships/${shipId}`, {
                 method: "DELETE",
                 headers: {
                     Authorization: `Bearer ${localStorage.getItem("token")}`
                 }
             });
+            
+            if (!res.ok) {
+                const error = await res.json();
+                alert(error.detail || "Failed to delete ship");
+                return;
+            }
+            
             await loadShips();
         } catch (e) {
             console.error("Error deleting ship:", e);
         }
     }
+
+    const filteredTemplates = shipTemplates
+        .filter(t => t.flight_ready)
+        .filter(t => t.name.toLowerCase().includes(searchShip.toLowerCase()));
+
+    const canDeleteShip = (ship: ShipData) => {
+        return currentUserRole === "admin" || currentUserRole === "officer" || ship.owner_id === currentUserId;
+    };
 
     if (loading) {
         return (
@@ -190,74 +258,35 @@ export default function FleetPage() {
                     </div>
                 </div>
 
-                <div style={{ display: 'flex', gap: '12px' }}>
-                    <button
-                        onClick={() => setShowAddForm(!showAddForm)}
-                        style={{
-                            padding: '12px 24px',
-                            background: 'linear-gradient(135deg, rgba(6, 182, 212, 0.2) 0%, rgba(6, 182, 212, 0.1) 100%)',
-                            border: '1px solid #06b6d4',
-                            borderRadius: '6px',
-                            color: '#06b6d4',
-                            fontSize: '13px',
-                            fontWeight: 600,
-                            letterSpacing: '1px',
-                            cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '8px',
-                            transition: 'all 0.2s ease'
-                        }}
-                        onMouseEnter={(e) => {
-                            e.currentTarget.style.background = 'linear-gradient(135deg, rgba(6, 182, 212, 0.3) 0%, rgba(6, 182, 212, 0.15) 100%)';
-                            e.currentTarget.style.boxShadow = '0 0 20px rgba(6, 182, 212, 0.3)';
-                        }}
-                        onMouseLeave={(e) => {
-                            e.currentTarget.style.background = 'linear-gradient(135deg, rgba(6, 182, 212, 0.2) 0%, rgba(6, 182, 212, 0.1) 100%)';
-                            e.currentTarget.style.boxShadow = 'none';
-                        }}
-                    >
-                        <Plus size={16} />
-                        ADD SHIP
-                    </button>
-
-                    <button
-                        onClick={syncFromUEX}
-                        disabled={syncing}
-                        style={{
-                            padding: '12px 24px',
-                            background: syncing 
-                                ? 'rgba(82, 82, 91, 0.2)'
-                                : 'linear-gradient(135deg, rgba(16, 185, 129, 0.2) 0%, rgba(16, 185, 129, 0.1) 100%)',
-                            border: `1px solid ${syncing ? '#52525b' : '#10b981'}`,
-                            borderRadius: '6px',
-                            color: syncing ? '#71717a' : '#10b981',
-                            fontSize: '13px',
-                            fontWeight: 600,
-                            letterSpacing: '1px',
-                            cursor: syncing ? 'not-allowed' : 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '8px',
-                            transition: 'all 0.2s ease'
-                        }}
-                        onMouseEnter={(e) => {
-                            if (!syncing) {
-                                e.currentTarget.style.background = 'linear-gradient(135deg, rgba(16, 185, 129, 0.3) 0%, rgba(16, 185, 129, 0.15) 100%)';
-                                e.currentTarget.style.boxShadow = '0 0 20px rgba(16, 185, 129, 0.3)';
-                            }
-                        }}
-                        onMouseLeave={(e) => {
-                            if (!syncing) {
-                                e.currentTarget.style.background = 'linear-gradient(135deg, rgba(16, 185, 129, 0.2) 0%, rgba(16, 185, 129, 0.1) 100%)';
-                                e.currentTarget.style.boxShadow = 'none';
-                            }
-                        }}
-                    >
-                        <RefreshCw size={16} style={{ animation: syncing ? 'spin 1s linear infinite' : 'none' }} />
-                        {syncing ? 'SYNCING...' : 'SYNC UEX'}
-                    </button>
-                </div>
+                <button
+                    onClick={() => setShowAddForm(!showAddForm)}
+                    style={{
+                        padding: '10px 20px',
+                        background: 'linear-gradient(135deg, rgba(6, 182, 212, 0.2) 0%, rgba(6, 182, 212, 0.1) 100%)',
+                        border: '1px solid #06b6d4',
+                        borderRadius: '6px',
+                        color: '#06b6d4',
+                        fontSize: '12px',
+                        fontWeight: 600,
+                        letterSpacing: '1px',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        transition: 'all 0.2s ease'
+                    }}
+                    onMouseEnter={(e) => {
+                        e.currentTarget.style.background = 'linear-gradient(135deg, rgba(6, 182, 212, 0.3) 0%, rgba(6, 182, 212, 0.15) 100%)';
+                        e.currentTarget.style.boxShadow = '0 0 20px rgba(6, 182, 212, 0.3)';
+                    }}
+                    onMouseLeave={(e) => {
+                        e.currentTarget.style.background = 'linear-gradient(135deg, rgba(6, 182, 212, 0.2) 0%, rgba(6, 182, 212, 0.1) 100%)';
+                        e.currentTarget.style.boxShadow = 'none';
+                    }}
+                >
+                    <Plus size={14} />
+                    ADD SHIP
+                </button>
             </div>
 
             {/* ADD FORM */}
@@ -279,77 +308,96 @@ export default function FleetPage() {
                         ADD NEW SHIP
                     </h3>
                     
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '20px' }}>
+                    <div style={{ marginBottom: '20px' }}>
                         <input
                             type="text"
-                            placeholder="Ship Name"
-                            value={newShip.name}
-                            onChange={(e) => setNewShip({...newShip, name: e.target.value})}
+                            placeholder="Search ship name..."
+                            value={searchShip}
+                            onChange={(e) => setSearchShip(e.target.value)}
                             style={{
+                                width: '100%',
                                 padding: '12px',
                                 background: 'rgba(0, 0, 0, 0.4)',
                                 border: '1px solid rgba(82, 82, 91, 0.5)',
                                 borderRadius: '6px',
                                 color: 'white',
-                                fontSize: '14px'
+                                fontSize: '14px',
+                                marginBottom: '12px'
                             }}
                         />
-                        <input
-                            type="text"
-                            placeholder="Manufacturer"
-                            value={newShip.manufacturer}
-                            onChange={(e) => setNewShip({...newShip, manufacturer: e.target.value})}
-                            style={{
-                                padding: '12px',
-                                background: 'rgba(0, 0, 0, 0.4)',
-                                border: '1px solid rgba(82, 82, 91, 0.5)',
-                                borderRadius: '6px',
-                                color: 'white',
-                                fontSize: '14px'
-                            }}
-                        />
-                        <input
-                            type="text"
-                            placeholder="Role"
-                            value={newShip.role}
-                            onChange={(e) => setNewShip({...newShip, role: e.target.value})}
-                            style={{
-                                padding: '12px',
-                                background: 'rgba(0, 0, 0, 0.4)',
-                                border: '1px solid rgba(82, 82, 91, 0.5)',
-                                borderRadius: '6px',
-                                color: 'white',
-                                fontSize: '14px'
-                            }}
-                        />
-                        <input
-                            type="number"
-                            placeholder="Cargo Capacity (SCU)"
-                            value={newShip.cargo_capacity_scu || ''}
-                            onChange={(e) => setNewShip({...newShip, cargo_capacity_scu: Number(e.target.value)})}
-                            style={{
-                                padding: '12px',
-                                background: 'rgba(0, 0, 0, 0.4)',
-                                border: '1px solid rgba(82, 82, 91, 0.5)',
-                                borderRadius: '6px',
-                                color: 'white',
-                                fontSize: '14px'
-                            }}
-                        />
+                        
+                        {searchShip && filteredTemplates.length > 0 && (
+                            <div style={{
+                                maxHeight: '300px',
+                                overflowY: 'auto',
+                                background: 'rgba(0, 0, 0, 0.6)',
+                                border: '1px solid rgba(6, 182, 212, 0.3)',
+                                borderRadius: '6px'
+                            }}>
+                                {filteredTemplates.map(template => (
+                                    <div
+                                        key={template.id}
+                                        onClick={() => {
+                                            setSelectedTemplate(template);
+                                            setSearchShip(template.name);
+                                        }}
+                                        style={{
+                                            padding: '12px',
+                                            borderBottom: '1px solid rgba(82, 82, 91, 0.2)',
+                                            cursor: 'pointer',
+                                            transition: 'all 0.2s ease'
+                                        }}
+                                        onMouseEnter={(e) => {
+                                            e.currentTarget.style.background = 'rgba(6, 182, 212, 0.1)';
+                                        }}
+                                        onMouseLeave={(e) => {
+                                            e.currentTarget.style.background = 'transparent';
+                                        }}
+                                    >
+                                        <div style={{ color: 'white', fontSize: '14px', fontWeight: 600 }}>
+                                            {template.name}
+                                        </div>
+                                        <div style={{ color: '#71717a', fontSize: '12px', marginTop: '4px' }}>
+                                            {template.manufacturer} • {template.role.join(", ")} • {template.cargo_scu} SCU
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
                     </div>
+
+                    {selectedTemplate && (
+                        <div style={{
+                            padding: '16px',
+                            background: 'rgba(6, 182, 212, 0.05)',
+                            border: '1px solid rgba(6, 182, 212, 0.2)',
+                            borderRadius: '6px',
+                            marginBottom: '20px'
+                        }}>
+                            <div style={{ color: 'white', fontSize: '14px', marginBottom: '8px' }}>
+                                <strong>Selected:</strong> {selectedTemplate.name}
+                            </div>
+                            <div style={{ color: '#71717a', fontSize: '12px' }}>
+                                {selectedTemplate.manufacturer} • {selectedTemplate.role.join(", ")} • {selectedTemplate.cargo_scu} SCU
+                            </div>
+                        </div>
+                    )}
                     
                     <button
                         onClick={addShip}
+                        disabled={!selectedTemplate}
                         style={{
                             padding: '12px 24px',
-                            background: 'linear-gradient(135deg, #06b6d4 0%, #0891b2 100%)',
+                            background: selectedTemplate 
+                                ? 'linear-gradient(135deg, #06b6d4 0%, #0891b2 100%)'
+                                : 'rgba(82, 82, 91, 0.3)',
                             border: 'none',
                             borderRadius: '6px',
-                            color: 'white',
+                            color: selectedTemplate ? 'white' : '#52525b',
                             fontSize: '13px',
                             fontWeight: 600,
                             letterSpacing: '1px',
-                            cursor: 'pointer',
+                            cursor: selectedTemplate ? 'pointer' : 'not-allowed',
                             transition: 'all 0.2s ease'
                         }}
                     >
@@ -358,7 +406,88 @@ export default function FleetPage() {
                 </div>
             )}
 
-            {/* FILTERS */}
+            {/* MANUFACTURER FILTERS */}
+            <div style={{
+                marginBottom: '20px',
+                overflowX: 'auto',
+                display: 'flex',
+                gap: '12px',
+                paddingBottom: '8px'
+            }}>
+                <button
+                    onClick={() => setFilterManufacturer(null)}
+                    style={{
+                        minWidth: '120px',
+                        padding: '8px 16px',
+                        background: !filterManufacturer
+                            ? 'rgba(6, 182, 212, 0.2)'
+                            : 'rgba(0, 0, 0, 0.3)',
+                        border: `1px solid ${!filterManufacturer ? '#06b6d4' : 'rgba(82, 82, 91, 0.5)'}`,
+                        borderRadius: '6px',
+                        color: !filterManufacturer ? '#06b6d4' : '#71717a',
+                        fontSize: '12px',
+                        fontWeight: 600,
+                        letterSpacing: '1px',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s ease'
+                    }}
+                >
+                    ALL
+                </button>
+                {MANUFACTURERS.map(mfr => (
+                    <button
+                        key={mfr.name}
+                        onClick={() => setFilterManufacturer(mfr.name)}
+                        style={{
+                            minWidth: '140px',
+                            padding: '8px 16px',
+                            background: filterManufacturer === mfr.name
+                                ? 'rgba(6, 182, 212, 0.2)'
+                                : 'rgba(0, 0, 0, 0.3)',
+                            border: `1px solid ${filterManufacturer === mfr.name ? '#06b6d4' : 'rgba(82, 82, 91, 0.5)'}`,
+                            borderRadius: '6px',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s ease',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            justifyContent: 'center'
+                        }}
+                        onMouseEnter={(e) => {
+                            if (filterManufacturer !== mfr.name) {
+                                e.currentTarget.style.borderColor = 'rgba(6, 182, 212, 0.4)';
+                            }
+                        }}
+                        onMouseLeave={(e) => {
+                            if (filterManufacturer !== mfr.name) {
+                                e.currentTarget.style.borderColor = 'rgba(82, 82, 91, 0.5)';
+                            }
+                        }}
+                    >
+                        <img 
+                            src={mfr.logo} 
+                            alt={mfr.name}
+                            style={{
+                                height: '20px',
+                                width: 'auto',
+                                filter: filterManufacturer === mfr.name 
+                                    ? 'brightness(0) saturate(100%) invert(68%) sepia(60%) saturate(2684%) hue-rotate(158deg) brightness(97%) contrast(101%)'
+                                    : 'brightness(0) saturate(100%) invert(48%) sepia(0%) saturate(0%) hue-rotate(180deg) brightness(96%) contrast(88%)'
+                            }}
+                        />
+                        <span style={{
+                            fontSize: '11px',
+                            fontWeight: 600,
+                            letterSpacing: '0.5px',
+                            color: filterManufacturer === mfr.name ? '#06b6d4' : '#71717a'
+                        }}>
+                            {mfr.name.toUpperCase()}
+                        </span>
+                    </button>
+                ))}
+            </div>
+
+            {/* STATUS FILTERS */}
             <div style={{ display: 'flex', gap: '12px', marginBottom: '32px' }}>
                 {[
                     { value: null, label: 'ALL' },
@@ -408,7 +537,7 @@ export default function FleetPage() {
                         NO SHIPS IN FLEET
                     </div>
                     <div style={{ color: '#52525b', fontSize: '12px', marginTop: '8px' }}>
-                        Add ships manually or sync from UEX
+                        Add ships manually from the available list
                     </div>
                 </div>
             ) : (
@@ -515,10 +644,28 @@ export default function FleetPage() {
                                         <div style={{
                                             fontSize: '12px',
                                             color: '#71717a',
-                                            marginBottom: '16px',
+                                            marginBottom: '8px',
                                             letterSpacing: '0.5px'
                                         }}>
                                             {ship.manufacturer}
+                                        </div>
+                                    )}
+
+                                    {/* OWNER */}
+                                    {ship.owner_username && (
+                                        <div style={{
+                                            fontSize: '11px',
+                                            color: '#06b6d4',
+                                            marginBottom: '16px',
+                                            padding: '4px 8px',
+                                            background: 'rgba(6, 182, 212, 0.1)',
+                                            border: '1px solid rgba(6, 182, 212, 0.2)',
+                                            borderRadius: '4px',
+                                            display: 'inline-block',
+                                            letterSpacing: '0.5px',
+                                            fontWeight: 600
+                                        }}>
+                                            OWNER: {ship.owner_username.toUpperCase()}
                                         </div>
                                     )}
 
@@ -591,26 +738,28 @@ export default function FleetPage() {
                                             <option value="maintenance" style={{ background: '#0a0e1a', color: '#ef4444' }}>Maintenance</option>
                                         </select>
 
-                                        <button
-                                            onClick={() => deleteShip(ship.id)}
-                                            style={{
-                                                padding: '8px',
-                                                background: 'rgba(239, 68, 68, 0.1)',
-                                                border: '1px solid rgba(239, 68, 68, 0.3)',
-                                                borderRadius: '4px',
-                                                color: '#ef4444',
-                                                cursor: 'pointer',
-                                                transition: 'all 0.2s ease'
-                                            }}
-                                            onMouseEnter={(e) => {
-                                                e.currentTarget.style.background = 'rgba(239, 68, 68, 0.2)';
-                                            }}
-                                            onMouseLeave={(e) => {
-                                                e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)';
-                                            }}
-                                        >
-                                            <Trash2 size={16} />
-                                        </button>
+                                        {canDeleteShip(ship) && (
+                                            <button
+                                                onClick={() => deleteShip(ship.id)}
+                                                style={{
+                                                    padding: '8px',
+                                                    background: 'rgba(239, 68, 68, 0.1)',
+                                                    border: '1px solid rgba(239, 68, 68, 0.3)',
+                                                    borderRadius: '4px',
+                                                    color: '#ef4444',
+                                                    cursor: 'pointer',
+                                                    transition: 'all 0.2s ease'
+                                                }}
+                                                onMouseEnter={(e) => {
+                                                    e.currentTarget.style.background = 'rgba(239, 68, 68, 0.2)';
+                                                }}
+                                                onMouseLeave={(e) => {
+                                                    e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)';
+                                                }}
+                                            >
+                                                <Trash2 size={16} />
+                                            </button>
+                                        )}
                                     </div>
                                 </div>
                             </div>
