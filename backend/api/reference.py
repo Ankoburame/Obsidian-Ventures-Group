@@ -93,14 +93,18 @@ async def list_locations(
             "name": loc.name,
             "system": loc.system,
             "planet": loc.planet,
-            "location": loc.location,
+            "moon": loc.moon,
             "location_type": loc.location_type,
-            "full_path": loc.full_path
+            "is_available": loc.is_available,
+            "has_trade_terminals": loc.has_trade_terminals,
+            "has_refinery": loc.has_refinery,
+            "has_shops": loc.has_shops,
+            "faction": loc.faction
         }
         for loc in locations
     ]
 
-# backend/api/reference.py
+
 @router.get("/refineries")
 async def list_refineries(db: Session = Depends(get_db)):
     """Get list of refinery locations from database."""
