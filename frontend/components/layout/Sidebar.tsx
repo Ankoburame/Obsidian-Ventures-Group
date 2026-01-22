@@ -11,16 +11,13 @@ import {
   TrendingUp,
   BookOpen,
   Zap,
-  Map,
   Hammer,
-  TrendingUp as TrendingUpAlt,
   Circle,
   ChevronRight,
   ChevronDown,
   Lock,
   BarChart3,
   Clock,
-  PieChart,
   Users,
   Ship,
 } from "lucide-react";
@@ -40,15 +37,12 @@ const navItems = [
 
 const referenceItems = [
   { href: "/reference/refining", label: "Refining", icon: Zap, available: true },
-  { href: "/reference/maps", label: "Stellar Maps", icon: Map, available: false },
   { href: "/reference/mining-spots", label: "Mining Spots", icon: Hammer, available: true },
-  { href: "/reference/trade", label: "Trade Routes", icon: TrendingUpAlt, available: false },
 ];
 
 const statsItems = [
   { href: "/stats/history", label: "Historique", icon: Clock, available: true },
-  { href: "/stats/analytics", label: "Analytics", icon: PieChart, available: false },
-  { href: "/stats/crew", label: "Crew Payout", icon: Users, available: true }, // ✅ UNLOCKED
+  { href: "/stats/crew", label: "Crew Payout", icon: Users, available: true },
 ];
 
 export function Sidebar({ open, toggleSidebar }: SidebarProps) {
