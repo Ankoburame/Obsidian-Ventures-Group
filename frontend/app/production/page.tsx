@@ -761,8 +761,8 @@ export default function ProductionPage() {
   const processingJobs = jobs.filter(j => j.status === "processing");
   const readyJobs = jobs.filter(j => j.status === "ready");
   const totalInventoryValue = Array.isArray(inventory)
-  ? inventory.reduce((sum, item) => sum + (item.estimated_total_value || 0), 0)
-  : 0;
+    ? inventory.reduce((sum, item) => sum + (item.estimated_total_value || 0), 0)
+    : 0;
 
   return (
     <div style={{

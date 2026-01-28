@@ -2483,6 +2483,18 @@
     "flight_ready": false 
 },
 {
+    "id": "rsi-hermes",
+    "name": "Hermes",
+    "manufacturer": "Roberts Space Industries",
+    "role": ["Transport"],
+    "cost": 0,
+    "cargo_scu": 288,
+    "max-crew": 2,
+    "size": "Medium",
+    "image_url": "https://robertsspaceindustries.com/i/f720d070d6d5f52cce2c37409151405f9a2d4fec/resize(3641,2048,cover,ADdPNihJzmPbNuTnFsH1DqUeqBRpXdSXVVtgJTyDDgscGKrzJuoFjResjfAeaU4TWFf3CESU2jzn6jRiAFDA6vV6W)/source.webp",
+    "flight_ready": true 
+},
+{
     "id": "rsi-lynx",
     "name": "Lynx",
     "manufacturer": "Roberts Space Industries",
