@@ -76,7 +76,7 @@ export default function DashboardPage() {
                 });
                 const dashboardData = await dashboardRes.json();
 
-                const userJobsRes = await fetch(`${API_URL}/production/jobs?status=processing`, {
+                const userJobsRes = await fetch(`${API_URL}/production/jobs?status=processing&scope=corporation`, {
                     headers: {
                         Authorization: `Bearer ${localStorage.getItem("token")}`
                     }

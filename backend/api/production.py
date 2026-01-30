@@ -31,6 +31,7 @@ router = APIRouter()
 @router.get("/jobs")
 async def list_jobs(
     status: Optional[str] = None,
+    scope: str = "user",
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
@@ -40,16 +41,30 @@ async def list_jobs(
     Query params:
     - status: Filter by status (processing, ready, collected, cancelled)
     """
-    query = db.query(RefiningJob).filter(RefiningJob.user_id == current_user.id)
+    # MODIFICATION: condition sur scope
+    if scope == "corporation":
+        # Tous les jobs (pas de filtre user_id)
+        query = db.query(RefiningJob)
+    else:
+        # Jobs user uniquement (comportement actuel)
+        query = db.query(RefiningJob).filter(RefiningJob.user_id == current_user.id)
     
     if status:
         # Auto-update jobs qui sont devenus ready
         if status == "processing":
-            db.query(RefiningJob).filter(
-                RefiningJob.user_id == current_user.id,
-                RefiningJob.status == "processing",
-                RefiningJob.end_time <= datetime.utcnow()
-            ).update({"status": "ready"})
+            if scope == "corporation":
+                # Update tous les jobs
+                db.query(RefiningJob).filter(
+                    RefiningJob.status == "processing",
+                    RefiningJob.end_time <= datetime.utcnow()
+                ).update({"status": "ready"}, synchronize_session=False)
+            else:
+                # Update user uniquement
+                db.query(RefiningJob).filter(
+                    RefiningJob.user_id == current_user.id,
+                    RefiningJob.status == "processing",
+                    RefiningJob.end_time <= datetime.utcnow()
+                ).update({"status": "ready"})
             db.commit()
         
         query = query.filter(RefiningJob.status == status)
