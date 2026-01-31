@@ -19,6 +19,7 @@ router = APIRouter()
 
 @router.get("/stats")
 async def get_dashboard_stats(
+    scope: str = "user",
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
@@ -28,20 +29,34 @@ async def get_dashboard_stats(
     Returns stats in format expected by frontend.
     """
     # Jobs stats
-    active_refining = db.query(RefiningJob).filter(
-        RefiningJob.user_id == current_user.id,
-        RefiningJob.status.in_(["processing", "ready"])
-    ).count()
+    if scope == "corporation":
+        # Tous les raffinages actifs
+        active_refining = db.query(RefiningJob).filter(
+            RefiningJob.status.in_(["processing", "ready"])
+        ).count()
+    else:
+        # User uniquement
+        active_refining = db.query(RefiningJob).filter(
+            RefiningJob.user_id == current_user.id,
+            RefiningJob.status.in_(["processing", "ready"])
+        ).count()
     
     # Inventory stats
     from models.inventory import Inventory as InventoryModel
     from models.material import Material
     from models.market import MarketPrice
     
-    inventory_items = db.query(InventoryModel).filter(
-        InventoryModel.user_id == current_user.id,
-        InventoryModel.quantity > 0
-    ).all()
+    if scope == "corporation":
+        # Tout l'inventaire
+        inventory_items = db.query(InventoryModel).filter(
+            InventoryModel.quantity > 0
+        ).all()
+    else:
+        # User uniquement
+        inventory_items = db.query(InventoryModel).filter(
+            InventoryModel.user_id == current_user.id,
+            InventoryModel.quantity > 0
+        ).all()
     
     stock_total = sum(float(inv.quantity) for inv in inventory_items)
     
@@ -62,10 +77,17 @@ async def get_dashboard_stats(
         estimated_stock_value += float(inv.quantity) * price
     
     # Refining history (last 5 completed jobs)
-    completed_jobs = db.query(RefiningJob).filter(
-        RefiningJob.user_id == current_user.id,
-        RefiningJob.status == "collected"
-    ).order_by(RefiningJob.collected_at.desc()).limit(5).all()
+    if scope == "corporation":
+        # Tous les jobs complétés
+        completed_jobs = db.query(RefiningJob).filter(
+            RefiningJob.status == "collected"
+        ).order_by(RefiningJob.collected_at.desc()).limit(5).all()
+    else:
+        # User uniquement
+        completed_jobs = db.query(RefiningJob).filter(
+            RefiningJob.user_id == current_user.id,
+            RefiningJob.status == "collected"
+        ).order_by(RefiningJob.collected_at.desc()).limit(5).all()
     
     refining_history = []
     for job in completed_jobs:

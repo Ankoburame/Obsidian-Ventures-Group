@@ -69,7 +69,7 @@ export default function DashboardPage() {
 
         async function loadData() {
             try {
-                const dashboardRes = await fetch(`${API_URL}/dashboard/stats`, {
+                const dashboardRes = await fetch(`${API_URL}/dashboard/stats?scope=corporation`, {
                     headers: {
                         Authorization: `Bearer ${localStorage.getItem("token")}`
                     }
