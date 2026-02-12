@@ -852,6 +852,18 @@
     "flight_ready": true
 },
 {
+    "id": "argo-moth",
+    "name": "MOTH",
+    "manufacturer": "Argo Astronautics",
+    "role": ["Industrial", "Salvage"],
+    "cost": 0,
+    "cargo_scu": 224,
+    "max-crew": 4,
+    "size": "Medium",
+    "image_url": "https://robertsspaceindustries.com/i/4a69d2f160ec32e3e152c32584ba2eda7f679495/resize(3641,2048,cover,ADdPNihJzmPbNuTnFsH1DqUeqBRpXdSXVVtgJTyDDgscGKrzJuoFjReseSUrmwwrRHrjg2T4ZjmCqGjTBfHFxLkvr)/source.webp",
+    "flight_ready": true
+},
+{
     "id": "argo-mpuv-cargo",
     "name": "MPUV Cargo",
     "manufacturer": "Argo Astronautics",
