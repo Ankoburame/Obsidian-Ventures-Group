@@ -1389,7 +1389,7 @@
     "max-crew": 6,
     "size": "Large",
     "image_url": "https://robertsspaceindustries.com/i/c8807bdc2f59a72db9f94dc268fdd2f758396991/resize(3641,2048,cover,ADdPNihJzmPbNuTnFsH1DqUeqBRpXdSXVVtgJTyDDgscGKrzJuoFjResjCenc9xo5pCEHm5Fwe536D13Zbb9SA7PU)/source.webp",
-    "flight_ready": false
+    "flight_ready": true
 },
 {
     "id": "drake-ironclad-assault",
@@ -1401,7 +1401,7 @@
     "max-crew": 6,
     "size": "Large",
     "image_url": "https://robertsspaceindustries.com/i/00dc7baa3f63efac65f684e80bbb212cdbf474d5/resize(3641,2048,cover,ADdPNihJzmPbNuTnFsH1DqUeqBRpXdSXVVtgJTyDDgscGKrzJuoFjResiiq2gADRhkfGJyL3BL3pHMYU5vMcUJ5AN)/source.webp",
-    "flight_ready": false
+    "flight_ready": true
 },
 {
     "id": "drake-kraken",
